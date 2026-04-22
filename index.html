@@ -701,82 +701,168 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <!-- code  -->
 <div class="panel" id="panel-code">
 <div class="wrap">
-  <div class="sh"><span class="sh-n">06</span><span class="sh-t">Code &amp; Architecture</span><span class="sh-d">R (all statistics) · Python Flask (server only) · HTML</span></div>
-  <div class="callout info" style="margin-bottom:1.25rem">
-    <strong>Design principle:</strong> All statistical computation lives in R. Python Flask serves the site and calls R on demand — it does no analysis itself. This matches the Data 101 course requirement and keeps concerns cleanly separated.
+  <div class="sh"><span class="sh-n">06</span><span class="sh-t">How to Run This Project</span><span class="sh-d">Setup · Files · Local machine · GitHub Pages</span></div>
+
+  <!-- what's in the repo -->
+  <div class="hyp-block" style="margin-bottom:1.5rem">
+    <h3>What Each File Does</h3>
+    <div style="display:grid;gap:.6rem;margin-top:.5rem">
+
+      <div style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1.25rem;align-items:start;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
+        <div><code style="color:var(--green);font-size:12px">analysis.R</code><div style="font-size:10px;color:var(--t3);margin-top:3px">R · ~350 lines</div></div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">The entire statistical analysis.</strong> Downloads six years of daily prices from Yahoo Finance, computes log returns, labels earnings windows, runs Welch's t-tests, fits GARCH(1,1) models, evaluates rolling forecast accuracy, and writes everything to <code>outputs/results.json</code>. This is the only file that does any real computation. Run it once and leave it — results are cached.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1.25rem;align-items:start;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
+        <div><code style="color:var(--blue);font-size:12px">index.html</code><div style="font-size:10px;color:var(--t3);margin-top:3px">HTML · self-contained</div></div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">The entire website — this page.</strong> All charts, tables, the blog, and the R console live in this one file. It has the real analysis results baked in as fallback data, so it works even with no server running. When it can find <code>outputs/results.json</code>, it loads that instead for the live computed values.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1.25rem;align-items:start;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
+        <div><code style="color:var(--amber);font-size:12px">outputs/results.json</code><div style="font-size:10px;color:var(--t3);margin-top:3px">JSON · ~40 KB</div></div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">The pre-computed output from analysis.R.</strong> Contains all hypothesis test results, GARCH parameters, rolling volatility series, RMSE values, correlation matrices, and normalized prices. The website reads this file to populate every chart and table. You can re-generate it at any time by re-running <code>analysis.R</code>.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1.25rem;align-items:start;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
+        <div><code style="color:var(--t2);font-size:12px">app.py</code><div style="font-size:10px;color:var(--t3);margin-top:3px">Python · optional</div></div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">A lightweight web server — optional.</strong> Serves <code>index.html</code> locally and exposes an endpoint that re-runs <code>analysis.R</code> on demand. You only need this if you want to re-run the R analysis from the browser using the ⟳ button. The site works perfectly without it.</div>
+      </div>
+    </div>
   </div>
-  <div class="g2" style="margin-bottom:1.25rem">
-    <div class="card"><div class="card-t">analysis.R — the full pipeline</div><pre><span class="cm"># All statistics are in R (quantmod, rugarch, moments)</span>
 
-<span class="cm"># 1. Download prices from Yahoo Finance</span>
-<span class="fn">getSymbols</span>(t, src=<span class="st">"yahoo"</span>, from=START_DATE, to=END_DATE)
-
-<span class="cm"># 2. Log returns</span>
-log_returns <span class="kw">&lt;-</span> <span class="fn">diff</span>(<span class="fn">log</span>(adj_close))
-
-<span class="cm"># 3. Build earnings window masks (3 pre + 1 post)</span>
-mask[start:end] <span class="kw">&lt;-</span> TRUE
-
-<span class="cm"># 4. Welch one-tailed t-test per ticker</span>
-<span class="fn">t.test</span>(earn_vol, normal_vol, alternative=<span class="st">"greater"</span>,
-       var.equal=<span class="nu">FALSE</span>)
-
-<span class="cm"># 5. GARCH(1,1) via rugarch</span>
-<span class="fn">ugarchfit</span>(<span class="fn">ugarchspec</span>(variance.model=<span class="fn">list</span>(
-  model=<span class="st">"sGARCH"</span>, garchOrder=<span class="fn">c</span>(<span class="nu">1</span>,<span class="nu">1</span>)),
-  distribution.model=<span class="st">"norm"</span>), data=r*<span class="nu">100</span>)
-
-<span class="cm"># 6. Rolling RMSE (10 windows, 1000-day train, 20-day horizon)</span>
-<span class="fn">ugarchforecast</span>(fit, n.ahead=<span class="nu">20</span>)
-
-<span class="cm"># 7. Export everything as JSON</span>
-<span class="fn">write_json</span>(output, path=<span class="st">"outputs/results.json"</span>)</pre></div>
-    <div class="card"><div class="card-t">app.py — server only, no statistics</div><pre><span class="kw">from</span> flask <span class="kw">import</span> Flask, jsonify, send_file
-<span class="kw">import</span> subprocess, json
-
-<span class="cm"># Serve the site</span>
-<span class="fn">@app.route</span>(<span class="st">"/"</span>)
-<span class="kw">def</span> <span class="fn">index</span>(): <span class="kw">return</span> <span class="fn">send_file</span>(<span class="st">"index.html"</span>)
-
-<span class="cm"># Call R, return cached JSON</span>
-<span class="fn">@app.route</span>(<span class="st">"/api/run"</span>)
-<span class="kw">def</span> <span class="fn">api_run</span>():
-    <span class="fn">subprocess.run</span>([<span class="st">"Rscript"</span>, <span class="st">"analysis.R"</span>])
-    <span class="kw">return</span> <span class="fn">jsonify</span>(<span class="fn">json.loads</span>(RESULT_JSON.<span class="fn">read_text</span>()))
-
-<span class="cm"># No stats in Python. R handles all of that.</span></pre></div>
+  <!-- option A: just open the file -->
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option A</span><span class="sh-t">Simplest — just open the file</span><span class="sh-d">No installation · works offline</span></div>
+  <div class="callout" style="margin-bottom:.75rem">
+    Download <strong>index.html</strong> and <strong>outputs/results.json</strong> (keep them in the same folder structure). Then just double-click <code>index.html</code>. The site will open in your browser with all charts and data already loaded from the embedded static values.
   </div>
-  <div class="card" style="margin-bottom:1.25rem"><div class="card-t">Architecture — three files, clear separation</div>
-<pre><span class="cm"># analysis.R  ← ALL statistics (quantmod, rugarch, moments, jsonlite)</span>
-<span class="cm">#   Downloads prices → computes returns → runs t-tests</span>
-<span class="cm">#   → fits GARCH → evaluates RMSE → outputs/results.json</span>
-<span class="cm">#</span>
-<span class="cm"># app.py       ← Python Flask (serves only, no stats)</span>
-<span class="cm">#   GET /          → serves index.html</span>
-<span class="cm">#   GET /api/data  → returns cached outputs/results.json</span>
-<span class="cm">#   GET /api/run   → runs Rscript analysis.R, then returns JSON</span>
-<span class="cm">#</span>
-<span class="cm"># index.html   ← this file (Chart.js, WebR, tab navigation)</span>
-<span class="cm">#   Works standalone with static data embedded in JS</span>
-<span class="cm">#   Upgrades to live data if Flask backend is running</span></pre>
-  </div>
-  <div class="card"><div class="card-t">Quick start</div>
-<pre><span class="cm"># Step 1 — R packages (run once in R/RStudio console)</span>
-<span class="fn">install.packages</span>(<span class="fn">c</span>(<span class="st">"quantmod"</span>,<span class="st">"rugarch"</span>,<span class="st">"jsonlite"</span>,
-                   <span class="st">"xts"</span>,<span class="st">"zoo"</span>,<span class="st">"moments"</span>))
+  <pre><span class="cm"># Folder structure needed:</span>
+your-folder/
+├── index.html
+└── outputs/
+    └── results.json</pre>
+  <div class="callout warn" style="margin-top:.75rem">If the charts show placeholder data instead of real numbers, your browser is blocking the local JSON fetch (a security restriction). Use Option B instead — it takes 30 seconds to set up.</div>
 
-<span class="cm"># Step 2 — Python</span>
+  <!-- option B: python static server -->
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option B</span><span class="sh-t">Python static server</span><span class="sh-d">Python 3 only · no R needed · ~30 seconds to start</span></div>
+  <div class="callout info" style="margin-bottom:.75rem">Python ships with a built-in web server. This fixes the browser security issue from Option A and gives you the exact same experience as the live GitHub Pages site — no Flask, no R installation required.</div>
+  <pre><span class="cm"># 1. Open Terminal (Mac/Linux) or Command Prompt (Windows)</span>
+
+<span class="cm"># 2. Navigate to the folder containing index.html</span>
+cd path/to/your-folder
+
+<span class="cm"># 3. Start the server (one command)</span>
+python3 -m http.server 8000
+
+<span class="cm"># 4. Open your browser and go to:</span>
+<span class="cm">#    http://localhost:8000</span>
+<span class="cm">#    The site loads with full real data.</span>
+
+<span class="cm"># Press Ctrl+C in Terminal to stop the server when done.</span></pre>
+
+  <!-- option C: flask + R (full stack) -->
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option C</span><span class="sh-t">Flask + R — full local stack</span><span class="sh-d">Run new analysis · re-download live prices</span></div>
+  <div class="callout info" style="margin-bottom:.75rem">Use this if you want to re-run the R analysis yourself — for example to extend the date range, add a new ticker, or verify results on fresh data from Yahoo Finance.</div>
+
+  <div class="g2" style="margin-bottom:1rem">
+    <div>
+      <div style="font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Step 1 — Install R packages</div>
+      <pre style="margin:0"><span class="cm"># Run this once inside R or RStudio:</span>
+<span class="fn">install.packages</span>(<span class="fn">c</span>(
+  <span class="st">"quantmod"</span>, <span class="cm"># price data from Yahoo</span>
+  <span class="st">"rugarch"</span>,  <span class="cm"># GARCH models</span>
+  <span class="st">"jsonlite"</span>, <span class="cm"># write results.json</span>
+  <span class="st">"xts"</span>,      <span class="cm"># time-series objects</span>
+  <span class="st">"zoo"</span>,      <span class="cm"># rolling functions</span>
+  <span class="st">"moments"</span>   <span class="cm"># skewness / kurtosis</span>
+))</pre>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Step 2 — Install Python packages</div>
+      <pre style="margin:0"><span class="cm"># In Terminal / Command Prompt:</span>
 pip install flask flask-cors
 
-<span class="cm"># Step 3 — Run R analysis standalone</span>
-Rscript analysis.R    <span class="cm"># creates outputs/results.json</span>
-
-<span class="cm"># Step 4 — Start Flask server</span>
-python app.py         <span class="cm"># serves on http://localhost:5000</span>
-
-<span class="cm"># Step 5 — Load data in browser</span>
-<span class="cm"># Open http://localhost:5000 and click ⟳ Load Data</span></pre>
+<span class="cm"># Verify Flask installed:</span>
+python3 -c <span class="st">"import flask; print(flask.__version__)"</span></pre>
+    </div>
   </div>
+
+  <div class="g2" style="margin-bottom:1rem">
+    <div>
+      <div style="font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Step 3 — Run the R analysis</div>
+      <pre style="margin:0"><span class="cm"># In Terminal, from the project folder:</span>
+Rscript analysis.R
+
+<span class="cm"># This takes ~2–5 minutes (downloads data,</span>
+<span class="cm"># fits all models, writes outputs/results.json)</span>
+<span class="cm"># You'll see progress printed as it runs.</span></pre>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Step 4 — Start the Flask server</div>
+      <pre style="margin:0"><span class="cm"># In Terminal, from the project folder:</span>
+python app.py
+
+<span class="cm"># Then open: http://localhost:5000</span>
+<span class="cm"># Click ⟳ Load Data to pull live results</span>
+<span class="cm"># or /api/run to re-run analysis.R fresh.</span></pre>
+    </div>
+  </div>
+
+  <!-- updating the analysis -->
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Updating</span><span class="sh-t">Re-running the analysis</span><span class="sh-d">When to re-run · what changes</span></div>
+  <div class="callout" style="margin-bottom:.75rem">
+    The <code>results.json</code> in the repo was generated in April 2026 covering Jan 2019 – Dec 2024. If you want fresher data — for example to include 2025 earnings — edit the <code>END_DATE</code> variable at the top of <code>analysis.R</code> and re-run it.
+  </div>
+  <pre><span class="cm"># In analysis.R, line ~5 — change the date range:</span>
+START_DATE <span class="kw">&lt;-</span> <span class="st">"2019-01-01"</span>
+END_DATE   <span class="kw">&lt;-</span> <span class="st">"2025-12-31"</span>  <span class="cm"># extend to include 2025</span>
+
+<span class="cm"># Then re-run:</span>
+Rscript analysis.R
+
+<span class="cm"># A new outputs/results.json is created.</span>
+<span class="cm"># The website auto-loads it on next page visit.</span>
+<span class="cm"># To publish: push the new results.json to GitHub.</span></pre>
+  <div class="callout warn" style="margin-top:.75rem">If you add new tickers, also add their quarterly earnings dates to the <code>earnings_dates</code> list in <code>analysis.R</code>. The analysis uses manually curated dates — it cannot infer them automatically.</div>
+
+  <!-- github pages deploy -->
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Deploy</span><span class="sh-t">Publishing to GitHub Pages</span><span class="sh-d">Free · no server · public URL</span></div>
+  <div class="callout info" style="margin-bottom:.75rem">
+    GitHub Pages serves the site as a static website — no Python, no Flask, no R running anywhere. Two files are all you need: <code>index.html</code> and <code>outputs/results.json</code>.
+  </div>
+
+  <div style="display:grid;gap:.6rem;margin-bottom:1.5rem">
+    <div style="display:grid;grid-template-columns:28px 1fr;gap:.5rem 1rem;align-items:start;padding:.75rem 1rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--green);font-weight:700;padding-top:1px">1</div>
+      <div style="font-size:12px;color:var(--t1);line-height:1.75">Go to <strong style="color:var(--t0)">github.com</strong> → click <strong style="color:var(--t0)">New repository</strong>. Name it anything (e.g. <code>data101-volatility</code>). Set it to <strong style="color:var(--t0)">Public</strong> (required for free Pages). Click Create.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:28px 1fr;gap:.5rem 1rem;align-items:start;padding:.75rem 1rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--green);font-weight:700;padding-top:1px">2</div>
+      <div style="font-size:12px;color:var(--t1);line-height:1.75">Upload files via the GitHub website: click <strong style="color:var(--t0)">Add file → Upload files</strong>. Drag in <code>index.html</code> and <code>app.py</code> and <code>analysis.R</code>. Then click Add file again, type <code>outputs/results.json</code> as the filename — GitHub creates the folder automatically — and upload <code>results.json</code>. Commit all files.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:28px 1fr;gap:.5rem 1rem;align-items:start;padding:.75rem 1rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--green);font-weight:700;padding-top:1px">3</div>
+      <div style="font-size:12px;color:var(--t1);line-height:1.75">In your repo: <strong style="color:var(--t0)">Settings → Pages → Source: Deploy from branch → main / (root) → Save</strong>. After 1–2 minutes your site is live at <code>https://yourusername.github.io/data101-volatility/</code></div>
+    </div>
+  </div>
+
+  <div style="font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Or push via Terminal (git)</div>
+  <pre><span class="cm"># If you have git installed and prefer the command line:</span>
+
+<span class="cm"># 1. In the project folder, initialize a git repo</span>
+git init
+git add .
+git commit -m <span class="st">"Data101 final project — volatility analysis"</span>
+
+<span class="cm"># 2. Create a new repo on github.com (no README, no .gitignore)</span>
+<span class="cm">#    then connect it here and push:</span>
+git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPO.git
+git branch -M main
+git push -u origin main
+
+<span class="cm"># 3. Enable GitHub Pages:</span>
+<span class="cm">#    repo → Settings → Pages → Deploy from branch → main/(root) → Save</span>
+<span class="cm">#    Your URL: https://YOUR-USERNAME.github.io/YOUR-REPO/</span></pre>
+
 </div>
 </div>
 
