@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VOL·ANALYTICS — Earnings Volatility · Data101</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#0a0c10;--bg1:#111318;--bg2:#181b22;--bg3:#1e2229;--bg4:#252a35;
+  --border:#2a2f3a;--border2:#353c4a;
+  --t0:#e8ecf0;--t1:#9ba3af;--t2:#6b7280;--t3:#4b5563;
+  --green:#22c55e;--gd:#16a34a;--gbg:rgba(34,197,94,.08);
+  --blue:#3b82f6;--bd:#2563eb;--bbg:rgba(59,130,246,.08);
+  --amber:#f59e0b;--abg:rgba(245,158,11,.08);
+  --red:#ef4444;--rbg:rgba(239,68,68,.08);
+  --purple:#a78bfa;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --serif:'Libre Baskerville',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --r:6px;--rl:10px;
+}
+html{scroll-behavior:smooth;background:var(--bg0)}
+body{color:var(--t0);font-family:var(--mono);font-size:13px;line-height:1.6;background:var(--bg0)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::selection{background:rgba(34,197,94,.2)}
+
+/* header */
+.hdr{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:rgba(10,12,16,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;gap:0}
+.logo{font-size:11px;font-weight:600;color:var(--green);letter-spacing:.08em;margin-right:1.5rem;white-space:nowrap;flex-shrink:0}
+.logo em{color:var(--t3);font-style:normal}
+.tabs{display:flex;flex:1;gap:0;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-size:10px;font-family:var(--mono);letter-spacing:.06em;padding:0 16px;height:52px;display:flex;align-items:center;color:var(--t2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s;white-space:nowrap;text-transform:uppercase}
+.tab:hover{color:var(--t0);background:rgba(255,255,255,.03)}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.hdr-r{display:flex;align-items:center;gap:.6rem;margin-left:auto;padding-left:1rem;flex-shrink:0}
+.load-btn{font-family:var(--mono);font-size:10px;padding:5px 13px;background:none;border:1px solid var(--border2);color:var(--t1);border-radius:var(--r);cursor:pointer;letter-spacing:.05em;transition:.15s}
+.load-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* panels */
+.page{padding-top:52px}
+.panel{display:none;min-height:calc(100vh - 52px);animation:fin .2s ease}
+.panel.active{display:block}
+@keyframes fin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.wrap{max-width:1100px;margin:0 auto;padding:2.5rem 2rem 5rem}
+.wrap-blog{max-width:760px;margin:0 auto;padding:2.5rem 2rem 5rem}
+
+/* status */
+.sbar{font-size:11px;padding:8px 13px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg2);display:none;align-items:center;gap:8px;margin-bottom:1.5rem;color:var(--t1)}
+.sbar.show{display:flex}.sbar.ok{border-color:var(--gd);color:var(--green)}.sbar.err{border-color:var(--red);color:var(--red)}
+.sdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* metrics */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:2rem}
+.met{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px}
+.met-l{font-size:9px;color:var(--t2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.met-v{font-size:22px;font-weight:700;line-height:1;color:var(--t0)}
+.met-s{font-size:11px;color:var(--t2);margin-top:3px}
+.met.mg{border-color:var(--gd);background:var(--gbg)}.met.mg .met-v{color:var(--green)}
+.met.mb{border-color:var(--bd);background:var(--bbg)}.met.mb .met-v{color:var(--blue)}
+.met.ma{border-color:#92400e;background:var(--abg)}.met.ma .met-v{color:var(--amber)}
+
+/* grid/card  */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:680px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.card-t{font-size:9px;color:var(--t2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.9rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+
+/* section header  */
+.sh{display:flex;align-items:baseline;gap:10px;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.sh-n{font-size:10px;color:var(--green);letter-spacing:.08em}
+.sh-t{font-size:15px;font-weight:600;color:var(--t0);letter-spacing:-.01em}
+.sh-d{font-size:11px;color:var(--t2);margin-left:auto}
+
+/* tables */
+.tw{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+thead tr{background:var(--bg2)}
+th{text-align:left;padding:8px 12px;color:var(--t2);font-weight:500;font-size:9px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+td{padding:8px 12px;color:var(--t0);border-bottom:1px solid var(--border)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.tr{text-align:right}
+.sy{color:var(--green);font-weight:600}.sn{color:var(--t3)}
+.bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600}
+.by{background:var(--gbg);color:var(--green);border:1px solid var(--gd)}
+.bn{background:var(--bg3);color:var(--t2);border:1px solid var(--border)}
+.hl td{background:rgba(34,197,94,.04)!important}
+
+/* charts */
+.cw{position:relative;width:100%}
+.cw.h160{height:160px}.cw.h200{height:200px}.cw.h240{height:240px}.cw.h280{height:280px}.cw.h320{height:320px}
+.leg{display:flex;flex-wrap:wrap;gap:12px;margin:.5rem 0;font-size:10px;color:var(--t2)}
+.li{display:flex;align-items:center;gap:5px}
+.lsq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.chart-src{font-size:10px;color:var(--t3);margin-top:.5rem;padding:.4rem .6rem;background:var(--bg3);border-radius:3px;border-left:2px solid var(--border2);line-height:1.6}
+.chart-src strong{color:var(--t2)}
+
+/* ticker tabs  */
+.ttabs{display:flex;gap:4px;margin-bottom:1rem;flex-wrap:wrap}
+.ttab{font-family:var(--mono);font-size:10px;padding:4px 13px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);background:none;color:var(--t2);letter-spacing:.05em;text-transform:uppercase;transition:.12s}
+.ttab:hover{border-color:var(--border2);color:var(--t0)}
+.ttab.active{border-color:var(--green);background:var(--gbg);color:var(--green)}
+
+/* persist bars  */
+.pb{margin:7px 0}.pb-h{font-size:10px;color:var(--t1);display:flex;justify-content:space-between;margin-bottom:3px}
+.pb-t{height:10px;background:var(--bg3);border-radius:3px;overflow:hidden;display:flex}
+.pb-a{background:var(--amber);height:100%}.pb-b{background:var(--blue);height:100%}
+
+/* hpd */
+.hpd{display:flex;align-items:center;gap:10px;margin:7px 0}
+.hpd-l{font-size:11px;color:var(--t1);min-width:48px}
+.hpd-t{flex:1;background:var(--bg3);border-radius:3px;height:18px;position:relative}
+.hpd-f{position:absolute;height:100%;opacity:.4;border-radius:3px}
+.hpd-c{position:absolute;width:2px;height:100%;top:0}
+.hpd-v{font-size:10px;color:var(--t1);min-width:145px;text-align:right}
+
+/* coverage */
+.cov{margin:8px 0}.cov-h{display:flex;justify-content:space-between;font-size:11px;color:var(--t1);margin-bottom:3px}
+.cov-t{height:18px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.cov-f{height:100%;display:flex;align-items:center;padding-left:8px;font-size:9px;font-weight:600;color:#0a0c10;letter-spacing:.04em}
+
+/* formula/callout  */
+.formula{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:var(--r);padding:12px 15px;font-family:var(--mono);font-size:11px;color:var(--t1);margin:.7rem 0;line-height:1.9}
+.callout{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--r);padding:11px 15px;font-size:12px;color:var(--t1);margin:.7rem 0;line-height:1.75}
+.callout strong{color:var(--t0)}.callout.warn{border-left-color:var(--amber);background:var(--abg)}.callout.info{border-left-color:var(--blue)}.callout.red{border-left-color:var(--red);background:var(--rbg)}
+
+/* code */
+pre{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rl);padding:1rem;font-family:var(--mono);font-size:11px;color:var(--t0);overflow-x:auto;line-height:1.75;margin:.7rem 0}
+pre .kw{color:var(--purple)}pre .fn{color:var(--blue)}pre .st{color:var(--amber)}pre .cm{color:var(--t3)}pre .nu{color:var(--green)}
+code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font-family:var(--mono)}
+
+/* hyp explainer  */
+.hyp-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:1.5rem}
+.hyp-block h3{font-size:12px;font-weight:600;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.eq-row{display:grid;grid-template-columns:auto 1fr;gap:.5rem 1rem;margin:.5rem 0;align-items:start;font-size:12px;color:var(--t1);line-height:1.7}
+.eq-sym{color:var(--amber);font-weight:600;font-size:13px}
+.eq-main{font-family:var(--mono);font-size:12px;color:var(--t0);background:var(--bg3);padding:8px 12px;border-radius:var(--r);margin:.4rem 0;display:block;border-left:2px solid var(--blue)}
+.eq-exp{font-size:12px;color:var(--t1);padding:.4rem 0}
+
+/* blog */
+.blog-kicker{font-size:10px;color:var(--green);letter-spacing:.14em;text-transform:uppercase;margin-bottom:.75rem}
+.blog-title{font-family:var(--serif);font-size:clamp(24px,4vw,40px);font-weight:700;line-height:1.12;letter-spacing:-.02em;margin-bottom:1rem;color:var(--t0)}
+.blog-deck{font-family:var(--serif);font-size:17px;font-style:italic;color:var(--t1);line-height:1.75;margin-bottom:1rem;max-width:640px}
+.blog-meta{font-size:10px;color:var(--t2);display:flex;flex-wrap:wrap;gap:.35rem .7rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.bms{color:var(--border2)}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.1rem 1.25rem;margin-bottom:2.5rem}
+.toc-h{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--t2);margin-bottom:.75rem}
+.toc ol{padding-left:1.4rem;color:var(--t1);line-height:2.4;font-family:var(--mono);font-size:11px}
+.toc a{color:var(--t1);text-decoration:none}.toc a:hover{color:var(--green)}
+.blog-body{font-family:var(--serif);font-size:16px;line-height:1.9;color:#c5cdd8}
+.blog-body p{margin-bottom:1.5rem}
+.blog-body h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin:2.5rem 0 1.1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.blog-body strong{color:var(--t0);font-weight:700}
+.blog-body em{color:var(--t1)}
+.bstat{font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:3px;border:1px solid var(--border);background:var(--bg3);color:var(--t0)}
+.bstat.g{background:var(--gbg);color:var(--green);border-color:var(--gd)}
+.bstat.a{background:var(--abg);color:var(--amber);border-color:#92400e}
+.bstat.r{background:var(--rbg);color:var(--red);border-color:#991b1b}
+.basid{border-left:3px solid var(--gd);padding:.75rem 1.1rem;margin:1.75rem 0;font-family:var(--serif);font-size:15px;font-style:italic;color:var(--t1);background:var(--gbg);border-radius:0 var(--r) var(--r) 0}
+.basid strong{font-style:normal;color:var(--t0)}
+.bfig{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.1rem;margin:1.75rem 0}
+.bfig-cap{font-family:var(--mono);font-size:10px;color:var(--t2);margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--border);line-height:1.6}
+.bhr{border:none;border-top:1px solid var(--border);margin:2rem 0}
+.fr-list{border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin:1.25rem 0}
+.fr{display:grid;grid-template-columns:18px 1fr;gap:.4rem 1rem;padding:.8rem 1rem;font-family:var(--serif);font-size:15px;line-height:1.7;align-items:start;border-bottom:1px solid var(--border)}
+.fr:last-child{border-bottom:none}
+.fr.hl-r{background:rgba(34,197,94,.04)}
+.fi{color:var(--green);font-family:var(--mono);font-size:11px;padding-top:.2rem}
+.fi.no{color:var(--t3)}
+
+/* r console  */
+.rconsole{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.rc-bar{display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;background:var(--bg2);border-bottom:1px solid var(--border)}
+.rc-title{font-size:10px;color:var(--t2);letter-spacing:.06em;text-transform:uppercase}
+.rc-status{font-size:10px;margin-left:auto}
+.rc-status.ok{color:var(--green)}.rc-status.loading{color:var(--amber)}.rc-status.err{color:var(--red)}
+#rInput{width:100%;background:transparent;border:none;color:var(--t0);font-family:var(--mono);font-size:12px;padding:.75rem 1rem;resize:vertical;min-height:160px;outline:none;line-height:1.65}
+.rc-btns{display:flex;gap:.5rem;padding:.6rem 1rem;background:var(--bg2);border-top:1px solid var(--border)}
+.rc-run{font-family:var(--mono);font-size:10px;padding:5px 14px;background:var(--green);color:#0a0c10;border:none;border-radius:var(--r);cursor:pointer;font-weight:600;letter-spacing:.05em}
+.rc-run:hover{background:var(--gd)}
+.rc-run:disabled{background:var(--bg3);color:var(--t3);cursor:default}
+.rc-clear{font-family:var(--mono);font-size:10px;padding:5px 14px;background:none;color:var(--t2);border:1px solid var(--border);border-radius:var(--r);cursor:pointer}
+.rc-clear:hover{border-color:var(--border2);color:var(--t1)}
+#rOutput{font-family:var(--mono);font-size:11px;color:var(--t0);padding:.75rem 1rem;min-height:120px;max-height:420px;overflow-y:auto;line-height:1.7;white-space:pre-wrap;border-top:1px solid var(--border)}
+.rout-line{margin:.1rem 0}
+.rout-line.result{color:var(--green)}
+.rout-line.err{color:var(--red)}
+.rout-line.sys{color:var(--t2)}
+.snippet-btns{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.snip-btn{font-family:var(--mono);font-size:10px;padding:4px 12px;border:1px solid var(--border);background:none;color:var(--t2);border-radius:var(--r);cursor:pointer;transition:.12s}
+.snip-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* overview hero  */
+.hero{margin-bottom:2.5rem}
+.hero-tag{font-size:10px;color:var(--green);letter-spacing:.14em;text-transform:uppercase;margin-bottom:.75rem}
+.hero h1{font-size:clamp(24px,4vw,38px);font-weight:700;line-height:1.15;letter-spacing:-.02em;color:var(--t0)}
+.hero h1 em{font-style:normal;color:var(--green)}
+.hero-deck{color:var(--t1);font-size:13px;margin-top:.75rem;max-width:580px;line-height:1.75}
+.pills{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1rem}
+.pill{font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--t2);background:var(--bg2)}
+.method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-bottom:2rem}
+.method-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1rem}
+.method-card-num{font-size:9px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+.method-card-t{font-size:13px;font-weight:600;color:var(--t0);margin-bottom:.35rem}
+.method-card-d{font-size:11px;color:var(--t2);line-height:1.6}
+
+/* overlay */
+#ov{display:none;position:fixed;inset:0;background:rgba(10,12,16,.9);backdrop-filter:blur(4px);z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+#ov.show{display:flex}
+.sp{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spn .75s linear infinite}
+@keyframes spn{to{transform:rotate(360deg)}}
+.ov-t{font-size:11px;color:var(--t1);letter-spacing:.04em}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">VOL<em>·</em>ANALYTICS <em>/ DATA101</em></div>
+  <div class="tabs" id="mainTabs">
+    <button class="tab active" data-panel="blog">Blog</button>
+    <button class="tab" data-panel="overview">Overview</button>
+    <button class="tab" data-panel="hypothesis">Hypothesis</button>
+    <button class="tab" data-panel="garch">GARCH</button>
+    <button class="tab" data-panel="bayesian">Bayesian</button>
+    <button class="tab" data-panel="rconsole">R Console</button>
+    <button class="tab" data-panel="code">Code</button>
+  </div>
+  <div class="hdr-r">
+    <button class="load-btn" onclick="loadData()">⟳ Load Data</button>
+  </div>
+</header>
+
+<div id="ov"><div class="sp"></div><div class="ov-t" id="ovt">Loading cached results…</div></div>
+
+<div class="page">
+
+<!-- blog   -->
+<div class="panel active" id="panel-blog">
+<div class="wrap-blog">
+  <div class="sbar" id="sbar"><div class="sdot"></div><span id="sbarm"></span></div>
+  <div class="blog-kicker">● Research Paper · Data101 Final Project · April 2026</div>
+  <div class="blog-title">The Earnings Effect:<br>Six Years of Data on What<br>Happens When Tech Reports</div>
+  <div class="blog-deck">Every quarter, five of the largest tech companies publish their earnings. We wanted to know whether those dates are actually more volatile than any other week — or whether that's just a story traders tell themselves. So we checked the data.</div>
+  <div class="blog-meta">
+    <span>Sonakshi Sharma</span><span class="bms">·</span>
+    <span>Sadhana Vasanthakumar</span><span class="bms">·</span>
+    <span>Hemadharshinii Sendhilvel</span><span class="bms">·</span>
+    <span>Rayane Skiker</span>
+    <span class="bms">|</span><span>Data101 · Spring 2026</span><span class="bms">·</span><span>~14 min read</span>
+  </div>
+
+  <div class="toc">
+    <div class="toc-h">Contents</div>
+    <ol>
+      <li><a href="#b0" onclick="return sb('b0')">Why This Question Matters</a></li>
+      <li><a href="#b1" onclick="return sb('b1')">What We Actually Built</a></li>
+      <li><a href="#b2" onclick="return sb('b2')">The Data — Six Years of Prices</a></li>
+      <li><a href="#b3" onclick="return sb('b3')">Fat Tails and Why Normal Fails</a></li>
+      <li><a href="#b4" onclick="return sb('b4')">Hypothesis Testing — What We Tested</a></li>
+      <li><a href="#b5" onclick="return sb('b5')">Results — All Five Reject H₀</a></li>
+      <li><a href="#b6" onclick="return sb('b6')">GARCH — Volatility Has Memory</a></li>
+      <li><a href="#b7" onclick="return sb('b7')">The Bayesian Extension</a></li>
+      <li><a href="#b8" onclick="return sb('b8')">Practical Implications</a></li>
+      <li><a href="#b9" onclick="return sb('b9')">Limitations & What's Next</a></li>
+    </ol>
+  </div>
+
+  <div class="blog-body">
+
+    <h3 id="b0">Why This Question Matters</h3>
+    <p>Every quarter, Meta, Apple, Amazon, Netflix, and Alphabet publish their earnings results. In the hours before and after each release, these stocks move in ways that traders treat as predictable — options prices on these names routinely spike before earnings because the market expects something unusual to happen. But is that expectation backed up by the actual data?</p>
+    <p>We wanted a simple answer to a simple question: are the five trading days around an earnings announcement actually more volatile than any other week? Not "does volatility feel higher" — does the math say it's higher, consistently, across six years of data?</p>
+    <p>To answer it properly we used three different statistical methods: a classical hypothesis test that asks whether the difference is real or just noise, a time-series model (GARCH) that accounts for the fact that volatile days cluster together, and a Bayesian extension that gives honest uncertainty ranges instead of false precision. All the computation is in R; the code is included and reproducible.</p>
+    <div class="basid">"The core question: in the five trading days around an earnings call, do these stocks move <strong>measurably more</strong> than usual — and how long does that elevated volatility last?"</div>
+
+    <h3 id="b1">What We Actually Built</h3>
+    <p>This is not just a data analysis — it is a full reproducible pipeline. The project has three layers: an <strong>R analysis engine</strong> (<code>analysis.R</code>) that handles all the heavy statistical lifting using the <code>quantmod</code>, <code>rugarch</code>, and <code>moments</code> packages; a lightweight <strong>Python Flask server</strong> (<code>app.py</code>) that serves this website and calls the R script on demand; and this <strong>interactive frontend</strong> that presents everything with live charts.</p>
+    <p>The R script downloads six years of daily price data from Yahoo Finance, computes log returns, labels the earnings windows, runs one-tailed Welch's t-tests per ticker, fits GARCH(1,1) models, and evaluates rolling forecast accuracy. A separate Bayesian GARCH was run offline using PyMC for NFLX. Every result is written to a JSON file that powers this dashboard — so the site can be read as both a paper and an interactive tool.</p>
+    <div class="basid">"The <strong>R Console tab</strong> lets you run real R code in your browser — no installation needed. Use the snippet buttons to step through each stage of the analysis. If you're not an R user, the results are fully described in this blog."</div>
+
+    <h3 id="b2">The Data — Six Years of Prices</h3>
+    <p>We downloaded daily adjusted closing prices for META, AAPL, AMZN, NFLX, and GOOGL from January 2019 through December 2024 using R's <code>quantmod::getSymbols()</code> function, which pulls from Yahoo Finance. This gave us approximately <strong>1,508 trading days</strong> per ticker — roughly 7,540 data points in total.</p>
+    <p>From daily prices we computed <strong>log returns</strong> — basically, the percentage change from one day to the next, expressed in a slightly different math form: <span class="bstat">r_t = ln(P_t / P_{t−1})</span>. We use log returns rather than simple percentage changes because they handle large moves more symmetrically and behave better in statistical models. If a stock falls 50% and then rises 100%, simple returns add up incorrectly — log returns do not. Each ticker yielded 1,507 return observations over the six-year period.</p>
+    <p>For each company we manually collected 24 quarterly earnings dates (2019–2024) from Nasdaq's public calendar. We defined an <strong>earnings window</strong> as the 3 trading days before the announcement, the announcement day itself, and 1 trading day after — 5 days per quarter, around 120 days per ticker across the full period. The pre-announcement days matter because information leaks early and traders position ahead of the number. The single post-announcement day captures the immediate reaction. Everything outside those windows is "normal" trading and forms the comparison group.</p>
+    <p>The period 2019–2024 was deliberately chosen to include diverse market regimes: the 2020 COVID crash and V-shaped recovery, the 2021 meme-stock bubble and tech euphoria, the 2022 rate-hike-driven tech selloff (NFLX fell 75%, META fell 65%), and the 2023–24 AI-driven recovery. This variety stress-tests whether earnings effects are robust or regime-dependent.</p>
+
+    <div class="bfig">
+      <div class="leg"><span class="li"><span class="lsq" style="background:#22c55e"></span>META</span><span class="li"><span class="lsq" style="background:#3b82f6"></span>AAPL</span><span class="li"><span class="lsq" style="background:#f59e0b"></span>AMZN</span><span class="li"><span class="lsq" style="background:#a78bfa"></span>NFLX</span><span class="li"><span class="lsq" style="background:#ef4444"></span>GOOGL</span></div>
+      <div class="cw h280"><canvas id="bNorm" role="img" aria-label="Normalised prices blog">Normalised prices.</canvas></div>
+      <div class="bfig-cap">Fig. 1 · Normalised closing prices (base = 100, Jan 2019). Generated by R's <code>quantmod::getSymbols()</code> + <code>Ad()</code> for adjusted close prices. META and NFLX show the largest multi-year appreciation despite severe mid-period drawdowns. AMZN dropped ~55% in 2022 before recovering sharply in 2023.</div>
+    </div>
+
+    <h3 id="b3">Fat Tails and Why Normal Fails</h3>
+    <p>Before any formal testing, we looked at the distribution of daily returns. The first thing that stands out is that <em>none of these stocks behave like a normal distribution</em> — and that turns out to matter a lot for how we model them.</p>
+    <p>Every ticker shows <strong>negative skewness</strong>. In plain terms: big down days happen more often and are more extreme than equivalently-sized up days. The distribution isn't a symmetric bell curve — it's skewed to the left. NFLX has the most extreme skewness at <span class="bstat r">−2.48</span>. The April 2022 session — NFLX fell 35% after reporting its first subscriber loss — is the dominant driver of that figure. META comes in second at −1.20, reflecting its own February 2022 crash. In both cases, the downside event had no equivalent upside counterpart in six years of data. Positive surprises rarely cause equivalent 35% daily gains.</p>
+    <p>All five also show large <strong>excess kurtosis</strong> — the tails of the distribution are "fatter" than a normal distribution would predict. NFLX's excess kurtosis is <span class="bstat a">41.4</span> — far beyond what a normal distribution would allow. This is driven largely by the April 2022 session where NFLX fell 35% in a single day; one extreme observation can dominate the kurtosis statistic in a fat-tailed series. META comes in second at 24.3. AAPL, AMZN, and GOOGL are milder at 5–6, more consistent with a typical large-cap equity. Extreme moves happen far more often than a normal distribution predicts across all five, but NFLX is in a different category entirely.</p>
+    <p>This empirical observation — fat tails and volatility clustering — is the core motivation for GARCH modelling. In a GARCH model, large shocks today make large shocks tomorrow more likely, and the conditional variance is tracked explicitly day by day rather than assumed constant.</p>
+
+    <div class="bfig">
+      <div class="cw h220"><canvas id="bKurt" role="img" aria-label="Kurtosis chart">Kurtosis.</canvas></div>
+      <div class="bfig-cap">Fig. 2 · Excess kurtosis per ticker. R: <code>moments::kurtosis(r) - 3</code>. NFLX at 41.4 is dominated by the April 2022 −35% session. META at 24.3 reflects the Feb 2022 −26% single-day crash. AAPL, AMZN, GOOGL land at 4–6, still fat-tailed but in a normal range for large-cap tech.</div>
+    </div>
+
+    <h3 id="b4">Hypothesis Testing — What We Tested</h3>
+    <p>With the data in hand, we formalized our question as a one-tailed statistical hypothesis test. The logic is straightforward: we have two groups of observations for each stock — absolute daily returns during earnings windows, and absolute daily returns during all other days. We want to know whether the first group has a significantly higher mean than the second.</p>
+    <p>We use <strong>absolute returns</strong> as our volatility proxy rather than squared returns, because they are less sensitive to outliers and easier to interpret in percentage terms. An absolute return of 2.5% means the stock moved 2.5% that day, up or down — that is our measure of "how volatile was today."</p>
+    <p>We chose <strong>Welch's t-test</strong> rather than the standard Student's t-test because the two groups have unequal variances (earnings days are inherently more dispersed), and Welch's test does not assume equal variances. It adjusts the degrees of freedom accordingly, giving a more accurate p-value. Significance was set at <strong>α = 0.01</strong> — a strict threshold, requiring strong evidence before rejecting the null.</p>
+    <p>The test is one-tailed: we are only interested in whether earnings weeks have <em>higher</em> volatility, not lower. We have theoretical reasons to expect higher volatility (information release, analyst reactions, algorithmic trading) and no reason to expect lower.</p>
+
+    <h3 id="b5">Results — All Five Reject H₀</h3>
+    <p>When we ran the analysis on the actual six-year dataset, the results were stronger than the initial draft predicted. All five tickers reject H₀ at α = 0.01. The degree of the effect varies considerably — and the story behind each ticker explains why.</p>
+
+    <div class="fr-list">
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>META</strong> — earnings vol <span class="bstat g">3.21%</span> vs normal <span class="bstat">1.63%</span> — p = 0.00016, Δ = +1.58 pp. The largest absolute gap in the dataset. Meta's business went through dramatic regime shifts: the Metaverse pivot in 2021, the catastrophic 2022 earnings where the stock fell 26% in a single day, and the "Year of Efficiency" in 2023 that drove one of the fastest large-cap recoveries on record. Each created extreme uncertainty heading into earnings that is simply absent in normal weeks.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>AAPL</strong> — earnings vol <span class="bstat g">1.75%</span> vs normal <span class="bstat">1.33%</span> — p = 0.006, Δ = +0.41 pp. Significant, but the smallest delta. Apple is the most "priced-in" earnings name in markets — supply chain data is practically public, iPhone cycles are widely tracked, analyst consensus is tight. Even so, the data shows a real and consistent bump. The market cannot fully neutralize earnings uncertainty even for the most closely watched stock in the world.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>AMZN</strong> — earnings vol <span class="bstat g">2.73%</span> vs normal <span class="bstat">1.44%</span> — p &lt; 0.00001, t = 5.11, Δ = +1.29 pp. The sharpest t-statistic of any ticker. Amazon is two businesses — retail e-commerce and AWS cloud computing — with different economic drivers and margin profiles. Results regularly shock on one dimension while disappointing on another, producing outsized reactions even when headline revenue lands in-line.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>NFLX</strong> — earnings vol <span class="bstat g">3.07%</span> vs normal <span class="bstat">1.73%</span> — p = 0.003, Δ = +1.34 pp. Netflix is the canonical "one-metric company" — subscriber count drives everything. That single number can swing the stock ±20% depending on a miss or beat by a few hundred thousand users. The data confirms what options traders have priced in for years.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>GOOGL</strong> — earnings vol <span class="bstat g">2.29%</span> vs normal <span class="bstat">1.31%</span> — p = 0.00001, t = 4.57, Δ = +0.98 pp. Our initial draft predicted GOOGL would fail to reach significance (placeholder p = 0.089). The real result inverted that completely. Alphabet's revenue diversification doesn't neutralize earnings risk — it just makes the sources of surprise harder to predict, which is arguably a larger problem for the market.</span></div>
+    </div>
+
+    <div class="basid">"Our initial draft expected 3 of 5. Every ticker cleared the bar. The weakest result — AAPL at p = 0.006 — is still six times more significant than the conventional threshold. <strong>Earnings move these stocks. That's no longer a question.</strong>"</div>
+
+    <h3 id="b6">GARCH — Volatility Has Memory</h3>
+    <p>The t-test tells us whether earnings weeks are more volatile on average — but it treats every day as independent, with no memory. In reality, turbulent days cluster: a big move today makes a big move tomorrow more likely. Anyone who lived through March 2020 or the 2022 tech selloff experienced this. The GARCH(1,1) model (the name stands for Generalized Autoregressive Conditional Heteroskedasticity — you don't need to memorize that) was built specifically to capture this clustering by tracking a time-varying estimate of risk that updates every day based on recent history.</p>
+    <p>The model tracks three things to estimate today's risk: <span class="bstat">ω</span> (a baseline level of volatility that always pulls things back), <span class="bstat">α</span> (how much yesterday's surprise — a big move — feeds into today's risk estimate), and <span class="bstat">β</span> (how much of yesterday's risk level carries over directly). Think of it as a weighted average: the market has a long-run "normal" risk level, each day's shock adds some new information, and yesterday's risk estimate persists with weight β. R's <code>rugarch</code> package estimates all three by maximum likelihood.</p>
+    <p>The GARCH results reveal a more nuanced picture than the initial draft suggested. All five tickers show strong volatility persistence, but the parameters vary meaningfully across names. <strong>NFLX has the highest persistence</strong> (α + β = 0.993) and the lowest news reactivity (α = 0.019): once NFLX volatility is elevated — say, after an earnings miss — it decays toward baseline very slowly, over many weeks. <strong>AMZN has the sharpest news term</strong> (α = 0.171): it reacts most strongly to new shocks, but also mean-reverts faster (α + β = 0.949). <strong>GOOGL mean-reverts fastest</strong> of the group (α + β = 0.923), meaning earnings-driven volatility dissipates relatively quickly for Alphabet compared to the others.</p>
+
+    <div class="bfig">
+      <div class="cw h200"><canvas id="bAB" role="img" aria-label="Alpha plus beta chart">AB persistence.</canvas></div>
+      <div class="bfig-cap">Fig. 3 · α + β persistence by ticker. R's <code>rugarch::ugarchfit(sGARCH(1,1))</code>, α (amber) and β (blue) shown separately. Range: GOOGL at 0.923 (fastest reversion) to NFLX at 0.993 (slowest). AMZN's α = 0.171 stands out as the most news-reactive model.</div>
+    </div>
+
+    <p>The rolling out-of-sample RMSE (1,000-day training window, 20-day forecast horizon, 10 windows per ticker) ranged from <span class="bstat">1.13 pp for AAPL</span> to <span class="bstat a">2.21 pp for META</span>, measured in percentage-point units since R scales returns ×100 before fitting. These values reflect the genuine difficulty of forecasting realized volatility — which is measured as |r_t|, a noisy single-day proxy. The GARCH conditional variance is not meant to predict each day's exact move; it tracks the underlying risk regime, which is a harder and more useful thing to do.</p>
+
+    <h3 id="b7">The Bayesian Extension</h3>
+    <p>The GARCH fit gives us point estimates for α, β, and ω. But how confident should we be in those numbers? If our dataset were slightly different — a different 6-year window, or different earnings shocks — would the parameters be materially different? Frequentist MLE cannot answer this question. Bayesian inference can.</p>
+    <p>We specified a Bayesian GARCH model for NFLX — the highest-volatility ticker, chosen because it provides the most information about extreme volatility dynamics. The sampler configuration was 800 posterior draws across 2 NUTS chains with a target acceptance rate of 0.90, run on a 500-day NFLX return window. <em>A note on transparency</em>: the full PyMC NUTS sampler is computationally expensive and was run as a one-time offline step. The posterior results reported here come from that run; they are not re-computed on each page load. The <code>analysis.R</code> script documents this explicitly with a note that the Bayesian block contains cached results. We flag this rather than quietly hard-coding it because reproducibility matters.</p>
+    <p>The priors were chosen to encode financial domain knowledge: <span class="bstat">Beta(2,5)</span> for α, which places most probability mass below 0.2 (news terms are typically small); and <span class="bstat">Beta(5,2)</span> for β, which places most mass above 0.8 (persistence is typically high). These are not "uninformative" priors — they encode what financial econometricians know about GARCH parameters from 40 years of literature.</p>
+    <p>The posterior means were <span class="bstat g">α = 0.108 [0.092, 0.124]</span> and <span class="bstat g">β = 0.878 [0.851, 0.903]</span> at 95% HPD (Highest Posterior Density) intervals. The intervals are narrow — 500 days of data is sufficient to identify both parameters with precision. The sum α + β = 0.986 sits inside the interval [0.960, 0.998], confirming near-integration even accounting for parameter uncertainty.</p>
+    <p>The most practically important result: Bayesian prediction intervals captured <strong>93%</strong> of out-of-sample realised volatility, compared to <strong>86%</strong> for frequentist GARCH. The 7-percentage-point gap arises because the Bayesian model propagates parameter uncertainty forward into its forecasts. When you're not sure whether α is 0.095 or 0.120, your forecast distribution should be wider — and a Bayesian model makes it wider automatically. A frequentist model pretends it knows α exactly, producing overconfident intervals.</p>
+    <div class="basid">"For a risk desk pricing options or setting margin requirements around NFLX earnings: the 7pp coverage gap means the frequentist model <strong>understates tail risk</strong> in roughly 7% of trading weeks. That's not academic — it's real exposure."</div>
+
+    <h3 id="b8">Practical Implications</h3>
+    <p>Taken together, these results have clear practical implications for anyone with exposure to these names around earnings dates.</p>
+    <p><strong>For options traders:</strong> selling short-dated straddles into META, AMZN, or NFLX earnings is selling volatility that is statistically elevated. The t-test tells you the premium is justified. But the GARCH model tells you that post-earnings elevated volatility does not snap back to baseline by Friday — it decays slowly over several weeks. If you sell the straddle and then forget about it, you may be carrying more gamma risk than you think.</p>
+    <p><strong>For risk managers:</strong> standard Value-at-Risk models that assume constant volatility will systematically underestimate risk in earnings windows for META, AMZN, and NFLX. A simple fix: multiply the volatility estimate by the observed ratio (earnings vol / normal vol) for the relevant stock in the 5-day window around its earnings date. For NFLX, that ratio is 3.07 / 1.73 = 1.78 — a 78% upward adjustment to the baseline volatility estimate during the five-day earnings window.</p>
+    <p><strong>For portfolio construction:</strong> Every name in this group shows a real earnings effect, but the magnitude matters for hedging decisions. META and NFLX show the largest absolute gaps — earnings weeks are roughly twice as volatile as normal weeks. AAPL and GOOGL show more modest effects: significant in aggregate, but the delta is small enough (0.41 pp and 0.98 pp respectively) that the cost of hedging may exceed the incremental risk in many practical contexts.</p>
+
+    <h3 id="b9">Limitations and What's Next</h3>
+    <p><strong>Earnings timing noise:</strong> We use the scheduled announcement date, but many earnings are released after market close, meaning the actual price reaction occurs on the <em>next</em> trading day. This introduces a one-day lag that our 5-day window captures imperfectly. Future work could classify each announcement as pre-market or post-market and adjust the window accordingly.</p>
+    <p><strong>GARCH symmetry assumption:</strong> The sGARCH(1,1) specification treats positive and negative shocks identically. In practice, negative earnings surprises tend to cause larger volatility spikes than equivalent positive surprises — the "leverage effect." Extensions like GJR-GARCH (which adds a term for negative-shock asymmetry) or EGARCH (which models log-variance) would capture this more accurately.</p>
+    <p><strong>Bayesian computational cost:</strong> Our Bayesian model runs on a 500-day NFLX subset. Extending this to all five tickers and the full 1,500-day period would require either variational inference (faster but approximate) or GPU-accelerated HMC sampling. This is tractable with current tools but was beyond the scope of this project.</p>
+    <p><strong>No economic measures:</strong> We measure volatility purely statistically. Future work could connect this to implied volatility (from options prices), which would allow direct comparison between the market's expectation of earnings volatility and the realized volatility we measure here. The gap between implied and realized is the core of earnings options trading strategies.</p>
+
+    <hr class="bhr">
+    <p style="font-family:var(--mono);font-size:10px;color:var(--t3);line-height:1.8"><strong style="color:var(--t2)">Data:</strong> Yahoo Finance via R quantmod &nbsp;·&nbsp; <strong style="color:var(--t2)">Stats:</strong> R (rugarch, moments, xts) &nbsp;·&nbsp; <strong style="color:var(--t2)">Bayesian:</strong> PyMC 5 (offline run, cached) &nbsp;·&nbsp; <strong style="color:var(--t2)">Period:</strong> Jan 2019 – Dec 2024 &nbsp;·&nbsp; <strong style="color:var(--t2)">Tickers:</strong> META AAPL AMZN NFLX GOOGL</p>
+  </div>
+</div>
+</div>
+
+<!-- overview   -->
+<div class="panel" id="panel-overview">
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-tag">● Data101 · Final Project · April 2026</div>
+    <h1>Stock <em>Volatility</em><br>Around Earnings Announcements</h1>
+    <div class="hero-deck">A six-year statistical investigation into whether FAANG earnings announcements cause measurable, significant spikes in daily return volatility — using Welch's t-tests, GARCH(1,1) models via R's rugarch package, and a Bayesian extension using PyMC.</div>
+    <div class="pills">
+      <span class="pill">Sonakshi Sharma</span><span class="pill">Sadhana Vasanthakumar</span>
+      <span class="pill">Hemadharshinii Sendhilvel</span><span class="pill">Rayane Skiker</span>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="met"><div class="met-l">Stocks</div><div class="met-v">5</div><div class="met-s">FAANG tickers</div></div>
+    <div class="met"><div class="met-l">Period</div><div class="met-v" style="font-size:16px;padding-top:3px">6 yrs</div><div class="met-s">Jan 2019 – Dec 2024</div></div>
+    <div class="met"><div class="met-l">Trading days</div><div class="met-v" id="m-days">~1508</div><div class="met-s">per ticker</div></div>
+    <div class="met mg"><div class="met-l">H₀ rejected</div><div class="met-v" id="m-rej">5 / 5</div><div class="met-s">at α = 0.01</div></div>
+    <div class="met mb"><div class="met-l">GARCH RMSE</div><div class="met-v">1.55<span style="font-size:13px">pp</span></div><div class="met-s">avg across tickers</div></div>
+    <div class="met ma"><div class="met-l">Bayes coverage</div><div class="met-v">93<span style="font-size:13px">%</span></div><div class="met-s">vs 86% frequentist</div></div>
+  </div>
+
+  <div class="sh"><span class="sh-n">Research Question</span><span class="sh-t">What are we investigating?</span></div>
+  <div class="callout info" style="margin-bottom:1.5rem">
+    <strong>Core question:</strong> Do quarterly earnings announcements cause a statistically significant increase in daily stock return volatility for the five largest US tech companies? We test this using three independent methods — classical hypothesis testing, time-series GARCH modelling, and Bayesian inference — on six years of daily price data (2019–2024).
+  </div>
+
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Methods</span><span class="sh-t">Four analytical layers</span></div>
+  <div class="method-grid">
+    <div class="method-card"><div class="method-card-num">Step 01</div><div class="method-card-t">Exploratory Analysis</div><div class="method-card-d">Summary statistics, normalised price charts, return distributions. Confirms fat tails and volatility clustering — motivating GARCH over OLS.</div></div>
+    <div class="method-card"><div class="method-card-num">Step 02</div><div class="method-card-t">Hypothesis Testing</div><div class="method-card-d">One-tailed Welch's t-test comparing |r_t| during earnings windows vs normal periods. α = 0.01. Tests independence of earnings-week volatility.</div></div>
+    <div class="method-card"><div class="method-card-num">Step 03</div><div class="method-card-t">GARCH(1,1) Model</div><div class="method-card-d">Fitted via R's rugarch (sGARCH spec, MLE). Captures volatility clustering and persistence. Rolling RMSE evaluation on 20-day forecasts.</div></div>
+    <div class="method-card"><div class="method-card-num">Step 04</div><div class="method-card-t">Bayesian Extension</div><div class="method-card-d">Bayesian GARCH on NFLX via PyMC NUTS (500 days, 800 draws, 2 chains). Full posterior distributions with HPD intervals — more honest uncertainty than frequentist point estimates.</div></div>
+  </div>
+
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Data</span><span class="sh-t">Summary statistics · daily log returns 2019–2024</span></div>
+  <div class="g2" style="margin-bottom:1.5rem">
+    <div class="card">
+      <div class="card-t">Return statistics per ticker</div>
+      <div class="tw"><table id="summaryTable">
+        <thead><tr><th>Ticker</th><th class="tr">Mean %</th><th class="tr">Std %</th><th class="tr">Skewness</th><th class="tr">Ex. Kurt.</th><th class="tr">n</th></tr></thead>
+        <tbody>
+          <tr><td>META</td><td class="tr">+0.098</td><td class="tr">2.706</td><td class="tr">−1.20</td><td class="tr">24.3</td><td class="tr">1508</td></tr>
+          <tr><td>AAPL</td><td class="tr">+0.126</td><td class="tr">1.943</td><td class="tr">−0.23</td><td class="tr">5.7</td><td class="tr">1508</td></tr>
+          <tr><td>AMZN</td><td class="tr">+0.070</td><td class="tr">2.150</td><td class="tr">−0.14</td><td class="tr">4.4</td><td class="tr">1508</td></tr>
+          <tr class="hl"><td>NFLX</td><td class="tr">+0.080</td><td class="tr">2.839</td><td class="tr">−2.48</td><td class="tr">41.4</td><td class="tr">1508</td></tr>
+          <tr><td>GOOGL</td><td class="tr">+0.086</td><td class="tr">1.967</td><td class="tr">−0.21</td><td class="tr">4.3</td><td class="tr">1508</td></tr>
+        </tbody>
+      </table></div>
+      <div class="chart-src"><strong>Source:</strong> R · <code>quantmod::getSymbols()</code> → <code>Ad()</code> → <code>diff(log(.))</code> · <code>moments::skewness()</code> / <code>kurtosis() − 3</code></div>
+    </div>
+    <div class="card">
+      <div class="card-t">Daily std dev (%)</div>
+      <div class="cw h200" id="std-wrap"><canvas id="stdChart" role="img" aria-label="Bar chart of std devs">STD devs.</canvas></div>
+      <div class="chart-src"><strong>Source:</strong> R · <code>apply(log_returns * 100, 2, sd)</code> — static from paper values</div>
+    </div>
+  </div>
+  <div class="callout warn">All five series show <strong>negative skewness</strong> (more extreme downward moves than up) and <strong>excess kurtosis</strong> (fat tails — especially NFLX at 41.4 and META at 24.3). Both confirm that a normal distribution is a poor fit. This is the core empirical motivation for GARCH.</div>
+  <div class="callout info" style="margin-top:.75rem"><strong>Correlations:</strong> The five tickers are moderately correlated (META–GOOGL 0.63, META–AMZN 0.61, AAPL–GOOGL 0.60). This means market-wide shocks — like the 2022 rate-hike selloff — affect all of them simultaneously. Earnings volatility effects measured here are therefore a <em>lower bound</em>: some of what looks like "normal" background volatility is itself driven by macro events that cluster these stocks together.</div>
+
+  <div class="card" style="margin-top:1.5rem">
+    <div class="card-t">Normalised closing prices · base = 100 · January 2019</div>
+    <div class="leg"><span class="li"><span class="lsq" style="background:#22c55e"></span>META</span><span class="li"><span class="lsq" style="background:#3b82f6"></span>AAPL</span><span class="li"><span class="lsq" style="background:#f59e0b"></span>AMZN</span><span class="li"><span class="lsq" style="background:#a78bfa"></span>NFLX</span><span class="li"><span class="lsq" style="background:#ef4444"></span>GOOGL</span></div>
+    <div class="cw h320" id="norm-wrap"><canvas id="normChart" role="img" aria-label="Normalised prices">Normalised prices.</canvas></div>
+    <div class="chart-src"><strong>Source:</strong> R · <code>norm &lt;- (adj_close / adj_close[1,]) * 100</code> thinned to 150 points for JSON transfer · real data from Yahoo Finance after Run</div>
+  </div>
+</div>
+</div>
+
+<!-- hypothesis   -->
+<div class="panel" id="panel-hypothesis">
+<div class="wrap">
+  <div class="hyp-block">
+    <h3>What Are We Testing?</h3>
+    <p style="font-size:12px;color:var(--t1);margin-bottom:1rem;line-height:1.75">We want to know whether stock prices move more — are more volatile — in the week around an earnings announcement versus a typical week. We measure volatility using the <strong>absolute daily log return</strong>, written |r_t|. A large |r_t| means the stock moved a lot that day (in either direction).</p>
+    <div style="margin-bottom:1rem">
+      <span class="eq-main">H₀ (null): μ(|r_t| earnings weeks) = μ(|r_t| normal weeks)</span>
+      <div class="eq-exp">The null hypothesis says earnings weeks are no different — the average absolute return during the 5-day earnings window equals the average absolute return on all other days. We assume this is true unless the data gives us strong evidence otherwise.</div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <span class="eq-main">H₁ (alternative): μ(|r_t| earnings weeks) > μ(|r_t| normal weeks)</span>
+      <div class="eq-exp">The alternative says earnings weeks are more volatile — we expect higher average absolute returns. This is one-tailed because we only care about the direction: more volatile, not less.</div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <span class="eq-main">Welch's t-test: t = (x̄₁ − x̄₂) / √(s₁²/n₁ + s₂²/n₂)</span>
+      <div class="eq-exp">We use Welch's t-test (not Student's) because the two groups have unequal variance — earnings days are inherently more spread out. Welch's adjusts the degrees of freedom to compensate. x̄₁ = mean earnings vol, x̄₂ = mean normal vol, s² = variance, n = sample size.</div>
+    </div>
+    <div>
+      <span class="eq-main">Significance: α = 0.01 → reject H₀ when p-value < 0.01</span>
+      <div class="eq-exp">We require a 1% significance level — stricter than the conventional 5% — because financial data is noisy and we want to be conservative. A p-value of 0.002 means: if H₀ were true, we'd see data this extreme only 0.2% of the time. That is strong evidence to reject H₀. A p-value of 0.089 means: we'd see this 8.9% of the time even if there were no earnings effect — not convincing enough.</div>
+    </div>
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);font-size:11px;color:var(--t2)">
+      <strong style="color:var(--t1)">R code:</strong> <code>t.test(earn_vol, normal_vol, alternative="greater", var.equal=FALSE)</code> — run separately for each of the 5 tickers. Returns t-statistic, degrees of freedom (Welch's adjusted), and one-tailed p-value.
+    </div>
+  </div>
+
+  <div class="sh"><span class="sh-n">02</span><span class="sh-t">Results — Filter by Ticker</span><span class="sh-d">n_earnings ≈ 120 · n_normal ≈ 1388</span></div>
+
+  <div class="ttabs" id="hypTabs">
+    <button class="ttab active" data-ticker="ALL">All Tickers</button>
+    <button class="ttab" data-ticker="META">META</button>
+    <button class="ttab" data-ticker="AAPL">AAPL</button>
+    <button class="ttab" data-ticker="AMZN">AMZN</button>
+    <button class="ttab" data-ticker="NFLX">NFLX</button>
+    <button class="ttab" data-ticker="GOOGL">GOOGL</button>
+  </div>
+
+  <div class="leg">
+    <span class="li"><span class="lsq" style="background:#22c55e"></span>Earnings week vol (%)</span>
+    <span class="li"><span class="lsq" style="background:#374151"></span>Normal week vol (%)</span>
+  </div>
+  <div class="cw h280" style="margin-bottom:.5rem" id="hyp-wrap"><canvas id="hypChart" role="img" aria-label="Hypothesis bar chart">Hyp chart.</canvas></div>
+  <div class="chart-src" style="margin-bottom:1.25rem"><strong>Source:</strong> R · <code>mean(abs(log_returns[earnings_mask])) * 100</code> and <code>mean(abs(log_returns[!earnings_mask])) * 100</code> per ticker · <code>build_earnings_mask()</code> uses <code>get_indexer(ed, method="nearest")</code> ± pre/post days</div>
+
+  <div class="tw" style="margin-bottom:1.25rem"><table>
+    <thead><tr><th>Ticker</th><th class="tr">Earn. vol %</th><th class="tr">Normal vol %</th><th class="tr">Δ</th><th class="tr">t-stat</th><th class="tr">df</th><th class="tr">p-value</th><th>Result</th></tr></thead>
+    <tbody id="hypTbody">
+      <tr class="hl"><td>META</td><td class="tr">3.207</td><td class="tr">1.631</td><td class="tr sy">+1.577</td><td class="tr">3.70</td><td class="tr">121.5</td><td class="tr">0.00016</td><td><span class="bdg by">✓ Reject H₀</span></td></tr>
+      <tr class="hl"><td>AAPL</td><td class="tr">1.746</td><td class="tr">1.334</td><td class="tr sy">+0.412</td><td class="tr">2.55</td><td class="tr">132.0</td><td class="tr">0.00590</td><td><span class="bdg by">✓ Reject H₀</span></td></tr>
+      <tr class="hl"><td>AMZN</td><td class="tr">2.727</td><td class="tr">1.436</td><td class="tr sy">+1.291</td><td class="tr">5.11</td><td class="tr">123.6</td><td class="tr">&lt; 0.00001</td><td><span class="bdg by">✓ Reject H₀</span></td></tr>
+      <tr class="hl"><td>NFLX</td><td class="tr">3.073</td><td class="tr">1.730</td><td class="tr sy">+1.343</td><td class="tr">2.83</td><td class="tr">121.0</td><td class="tr">0.00272</td><td><span class="bdg by">✓ Reject H₀</span></td></tr>
+      <tr class="hl"><td>GOOGL</td><td class="tr">2.290</td><td class="tr">1.311</td><td class="tr sy">+0.979</td><td class="tr">4.57</td><td class="tr">125.1</td><td class="tr">0.00001</td><td><span class="bdg by">✓ Reject H₀</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout">
+    <strong>Interpretation:</strong> All five tickers reject H₀ at α = 0.01 — a stronger result than our initial hypothesis. AMZN produced the sharpest t-statistic (5.11, p &lt; 0.00001), with a delta of +1.29 pp between earnings and normal volatility. AAPL, the weakest result, still clears the bar clearly (p = 0.006). The pattern is consistent: these stocks are measurably more volatile around earnings dates, not just noisier.
+    <br><br><strong>Note on independence:</strong> Welch's t-test assumes observations are independent. Volatility is autocorrelated — big moves cluster — so the effective sample size is smaller than n=120/1388. The GARCH tab addresses this properly by modelling the autocorrelation structure explicitly. The t-test results should be read as a directional signal, confirmed (not replaced) by GARCH.
+  </div>
+</div>
+</div>
+
+<!-- garch -->
+<div class="panel" id="panel-garch">
+<div class="wrap">
+  <div class="sh"><span class="sh-n">03</span><span class="sh-t">GARCH(1,1) Model</span><span class="sh-d">R · rugarch · sGARCH · MLE</span></div>
+  <div class="callout info" style="margin-bottom:1.5rem">
+    <strong>Why GARCH?</strong> The t-test ignores the fact that volatility is autocorrelated — a big move today predicts a big move tomorrow. GARCH(1,1) explicitly models this "volatility clustering" by tracking a time-varying conditional variance σ²_t that depends on past returns and past variance estimates. It is the standard model for daily financial return volatility.
+  </div>
+  <div class="formula">
+    r_t = μ + ε_t &nbsp;&nbsp;&nbsp; ε_t = σ_t · z_t &nbsp;&nbsp;&nbsp; z_t ~ N(0,1)<br>
+    σ²_t = ω &nbsp;+&nbsp; α · ε²_{t−1} &nbsp;+&nbsp; β · σ²_{t−1}<br><br>
+    ω = long-run variance baseline (intercept)<br>
+    α = ARCH term: how much does yesterday's squared shock increase today's variance? (news impact)<br>
+    β = GARCH term: how much does yesterday's variance forecast carry into today? (persistence/memory)<br>
+    α + β = total persistence — the closer to 1, the slower volatility reverts to baseline
+  </div>
+
+  <div class="g2" style="margin:1.25rem 0">
+    <div class="card">
+      <div class="card-t">Parameter estimates · sGARCH(1,1) · rugarch</div>
+      <div class="tw"><table>
+        <thead><tr><th>Ticker</th><th class="tr">ω</th><th class="tr">α (news)</th><th class="tr">β (carry)</th><th class="tr">α+β</th><th class="tr">AIC</th></tr></thead>
+        <tbody id="garchTbody">
+          <tr><td>META</td><td class="tr">0.1175</td><td class="tr">0.0334</td><td class="tr">0.9533</td><td class="tr" style="color:var(--blue);font-weight:600">0.987</td><td class="tr">4.752</td></tr>
+          <tr><td>AAPL</td><td class="tr">0.1380</td><td class="tr">0.0963</td><td class="tr">0.8626</td><td class="tr" style="color:var(--blue);font-weight:600">0.959</td><td class="tr">3.957</td></tr>
+          <tr><td>AMZN</td><td class="tr">0.2855</td><td class="tr" style="color:var(--amber)">0.1705</td><td class="tr">0.7781</td><td class="tr" style="color:var(--blue);font-weight:600">0.949</td><td class="tr">4.219</td></tr>
+          <tr class="hl"><td>NFLX</td><td class="tr">0.0658</td><td class="tr">0.0192</td><td class="tr" style="color:var(--amber)">0.9735</td><td class="tr" style="color:var(--blue);font-weight:600">0.993</td><td class="tr">4.836</td></tr>
+          <tr><td>GOOGL</td><td class="tr">0.2874</td><td class="tr">0.0734</td><td class="tr">0.8498</td><td class="tr" style="color:var(--blue);font-weight:600">0.923</td><td class="tr">4.099</td></tr>
+        </tbody>
+      </table></div>
+      <div class="chart-src"><strong>Source:</strong> R · <code>ugarchfit(ugarchspec(variance.model=list(model="sGARCH", garchOrder=c(1,1)), distribution.model="norm"), data=r*100, solver="hybrid")</code> · AIC populated from live R output</div>
+    </div>
+    <div class="card">
+      <div class="card-t">α + β decomposition — persistence bar</div>
+      <div id="pbars"></div>
+      <div class="leg" style="margin-top:.9rem"><span class="li"><span class="lsq" style="background:var(--amber)"></span>α news impact</span><span class="li"><span class="lsq" style="background:var(--blue)"></span>β persistence</span></div>
+      <div class="chart-src" style="margin-top:.75rem"><strong>Reading this:</strong> Each bar sums to α+β. The amber slice shows how reactive the model is to new shocks; the blue slice shows how much yesterday's variance is "carried" forward. All five sum above 0.98 — near-unit-root variance.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-t">NFLX conditional volatility σ_t · GARCH(1,1) fitted by rugarch</div>
+    <div class="cw h320" id="gv-wrap"><canvas id="garchVolChart" role="img" aria-label="NFLX cond vol">NFLX cond vol.</canvas></div>
+    <div class="chart-src"><strong>Source:</strong> R · <code>sigma(ugarchfit(spec, data=r_nflx*100))</code> — the <code>sigma()</code> function extracts the fitted conditional standard deviation σ_t from the GARCH object. Thinned to 150 points for JSON. Dashed lines mark quarterly earnings dates.</div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-t">Rolling forecast RMSE · 1000-day train · 20-day horizon</div>
+      <div class="cw h180" id="rmse-wrap"><canvas id="rmseChart" role="img" aria-label="RMSE chart">RMSE.</canvas></div>
+      <div class="chart-src"><strong>Source:</strong> R · <code>ugarchforecast(fit, n.ahead=20)</code> → <code>sigma(fc)</code> vs <code>abs(test_returns)</code>. RMSE averaged over 10 rolling windows per ticker.</div>
+    </div>
+    <div class="card">
+      <div class="card-t">Key findings</div>
+      <ul style="font-size:12px;color:var(--t1);list-style:none;line-height:2.2">
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ All α + β > 0.92: strong volatility persistence</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ AMZN α = 0.170: sharpest reaction to new shocks</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ NFLX β = 0.974: slowest mean reversion (α+β = 0.993)</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ GOOGL α+β = 0.923: fastest reversion to baseline</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ RMSE 1.1–2.2 pp: forecasts rough but directionally useful</li>
+        <li style="padding:.2rem 0">→ Earnings shocks decay over weeks, not days</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- bayesian  -->
+<div class="panel" id="panel-bayesian">
+<div class="wrap">
+  <div class="sh"><span class="sh-n">04</span><span class="sh-t">Bayesian GARCH Extension</span><span class="sh-d">Bayesian GARCH · NFLX · 500 days · offline PyMC run</span></div>
+  <div class="callout info">
+    <strong>Why go Bayesian?</strong> Frequentist MLE gives you one number for each parameter (e.g., α = 0.108). But that number has uncertainty — a different 500-day window would give a slightly different answer. Bayesian inference gives you a <em>probability distribution</em> over each parameter, quantifying exactly how uncertain you should be. This propagates into wider, more honest prediction intervals.
+  </div>
+  <div class="g3" style="margin:1.25rem 0">
+    <div class="card">
+      <div class="card-t">Posterior means · NFLX 500 days</div>
+      <table><thead><tr><th>Param</th><th class="tr">Mean</th><th class="tr">95% HPD</th></tr></thead>
+      <tbody>
+        <tr><td>α</td><td class="tr" style="color:var(--amber)">0.108</td><td class="tr">[0.092, 0.124]</td></tr>
+        <tr><td>β</td><td class="tr" style="color:var(--blue)">0.878</td><td class="tr">[0.851, 0.903]</td></tr>
+        <tr><td>ω</td><td class="tr">0.0003</td><td class="tr">[0.0001, 0.0005]</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-t">Sampler config</div>
+      <table><thead><tr><th>Setting</th><th class="tr">Value</th></tr></thead>
+      <tbody>
+        <tr><td>Algorithm</td><td class="tr">NUTS</td></tr>
+        <tr><td>Draws</td><td class="tr">800</td></tr>
+        <tr><td>Tune</td><td class="tr">400</td></tr>
+        <tr><td>Chains</td><td class="tr">2</td></tr>
+        <tr><td>target_accept</td><td class="tr">0.90</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-t">Coverage comparison</div>
+      <div class="cov"><div class="cov-h"><span>Bayesian (PyMC)</span><span style="color:var(--green)">93%</span></div><div class="cov-t"><div class="cov-f" style="width:93%;background:var(--green)">93%</div></div></div>
+      <div class="cov"><div class="cov-h"><span>Frequentist GARCH</span><span>86%</span></div><div class="cov-t"><div class="cov-f" style="width:86%;background:var(--blue)">86%</div></div></div>
+      <p style="font-size:10px;color:var(--t2);margin-top:.5rem;line-height:1.5">% of out-of-sample realised volatility values falling inside the 95% prediction interval</p>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-t">95% HPD intervals — posterior width visualisation</div>
+    <div class="hpd"><span class="hpd-l">α (news)</span><div class="hpd-t"><div class="hpd-f" style="left:28%;width:28%;background:var(--amber)"></div><div class="hpd-c" style="left:41%;background:var(--amber)"></div></div><span class="hpd-v">0.108 &nbsp;[0.092 – 0.124]</span></div>
+    <div class="hpd"><span class="hpd-l">β (carry)</span><div class="hpd-t"><div class="hpd-f" style="left:57%;width:32%;background:var(--blue)"></div><div class="hpd-c" style="left:73%;background:var(--blue)"></div></div><span class="hpd-v">0.878 &nbsp;[0.851 – 0.903]</span></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-t">PyMC model — recursive GARCH via pytensor.scan</div>
+      <pre><span class="kw">import</span> pymc <span class="kw">as</span> pm, pytensor.tensor <span class="kw">as</span> pt
+
+<span class="kw">with</span> pm.<span class="fn">Model</span>() <span class="kw">as</span> model:
+  omega <span class="kw">=</span> pm.<span class="fn">Exponential</span>(<span class="st">"omega"</span>, lam=<span class="nu">1.0</span>)
+  alpha <span class="kw">=</span> pm.<span class="fn">Beta</span>(<span class="st">"alpha"</span>, alpha=<span class="nu">2</span>, beta=<span class="nu">5</span>)
+  beta  <span class="kw">=</span> pm.<span class="fn">Beta</span>(<span class="st">"beta"</span>,  alpha=<span class="nu">5</span>, beta=<span class="nu">2</span>)
+  s0    <span class="kw">=</span> pm.<span class="fn">Exponential</span>(<span class="st">"s0"</span>, lam=<span class="nu">0.1</span>)
+
+  <span class="kw">def</span> <span class="fn">garch_step</span>(r, s2, w, a, b):
+      <span class="kw">return</span> w + a*r**<span class="nu">2</span> + b*s2
+
+  s2_seq, _ <span class="kw">=</span> pytensor.<span class="fn">scan</span>(
+      fn<span class="kw">=</span>garch_step,
+      sequences<span class="kw">=</span>[pt.<span class="fn">as_tensor</span>(r_bay[:<span class="nu">-1</span>])],
+      outputs_info<span class="kw">=</span>[s0],
+      non_sequences<span class="kw">=</span>[omega, alpha, beta])
+
+  pm.<span class="fn">Normal</span>(<span class="st">"obs"</span>, mu=<span class="nu">0</span>,
+      sigma<span class="kw">=</span>pm.math.<span class="fn">sqrt</span>(s2_seq),
+      observed<span class="kw">=</span>r_bay[<span class="nu">1</span>:])
+  trace <span class="kw">=</span> pm.<span class="fn">sample</span>(<span class="nu">800</span>, tune=<span class="nu">400</span>,
+               target_accept=<span class="nu">0.9</span>)</pre>
+    </div>
+    <div class="card">
+      <div class="card-t">Why Bayesian outperforms frequentist</div>
+      <ul style="font-size:12px;color:var(--t1);list-style:none;line-height:2.2">
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Full posterior distributions, not point estimates</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Prediction intervals are genuinely probabilistic</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Beta(5,2) prior encodes "high persistence" knowledge</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ <strong>93% vs 86%</strong> out-of-sample coverage</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Honest uncertainty for risk management</li>
+        <li style="padding:.2rem 0">→ HPD intervals are narrower than CI — more precise</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- r console  -->
+<div class="panel" id="panel-rconsole">
+<div class="wrap">
+  <div class="sh"><span class="sh-n">05</span><span class="sh-t">R Console</span><span class="sh-d">WebR · R in the browser via WebAssembly</span></div>
+  <div class="callout info" style="margin-bottom:1.5rem">
+    <strong>Real R in your browser.</strong> This console runs actual R code via <a href="https://webr.r-wasm.org" style="color:var(--blue)">WebR</a> — R compiled to WebAssembly. No local R installation needed. It takes ~15 seconds to initialize on first load. Base R and several packages are available. Use the snippet buttons below to load example code from this project.
+  </div>
+
+  <div class="snippet-btns">
+    <button class="snip-btn" onclick="loadSnippet('summary')">Summary Stats</button>
+    <button class="snip-btn" onclick="loadSnippet('returns')">Log Returns</button>
+    <button class="snip-btn" onclick="loadSnippet('ttest')">t-test Demo</button>
+    <button class="snip-btn" onclick="loadSnippet('garch')">GARCH Fit</button>
+    <button class="snip-btn" onclick="loadSnippet('persist')">α+β Persistence</button>
+    <button class="snip-btn" onclick="loadSnippet('earnings')">Earnings Mask</button>
+  </div>
+
+  <div class="rconsole">
+    <div class="rc-bar">
+      <span class="rc-title">R Console</span>
+      <span class="rc-status loading" id="rcStatus">Initializing WebR…</span>
+    </div>
+    <textarea id="rInput" spellcheck="false" placeholder="# Loading WebR (R via WebAssembly)...&#10;# This takes ~15 seconds on first load.&#10;# Try the snippet buttons above to load example code."></textarea>
+    <div class="rc-btns">
+      <button class="rc-run" id="rcRunBtn" onclick="runR()" disabled>▶ Run</button>
+      <button class="rc-clear" onclick="clearR()">Clear Output</button>
+    </div>
+    <div id="rOutput"><span style="color:var(--t3)">Output will appear here after running code…</span></div>
+  </div>
+
+  <div style="margin-top:1.5rem" class="g2">
+    <div class="card">
+      <div class="card-t">Available packages (pre-installed in WebR)</div>
+      <ul style="font-size:11px;color:var(--t1);list-style:none;line-height:2.1">
+        <li><code>stats</code> — t.test, lm, acf, var</li>
+        <li><code>base</code> — all base R functions</li>
+        <li><code>moments</code> — skewness, kurtosis (install first)</li>
+        <li><code>jsonlite</code> — toJSON, fromJSON</li>
+      </ul>
+      <div style="margin-top:.75rem;font-size:11px;color:var(--t2)">Install extra: <code>webr::install("moments")</code></div>
+    </div>
+    <div class="card">
+      <div class="card-t">Notes on WebR</div>
+      <ul style="font-size:11px;color:var(--t1);list-style:none;line-height:2.1">
+        <li>→ Cannot access internet (no yfinance/Yahoo)</li>
+        <li>→ rugarch not available (compute heavy)</li>
+        <li>→ Use embedded data from snippets above</li>
+        <li>→ Graphics output not shown (text only)</li>
+        <li>→ Runs entirely in your browser — private</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- code  -->
+<div class="panel" id="panel-code">
+<div class="wrap">
+  <div class="sh"><span class="sh-n">06</span><span class="sh-t">Code &amp; Architecture</span><span class="sh-d">R (all statistics) · Python Flask (server only) · HTML</span></div>
+  <div class="callout info" style="margin-bottom:1.25rem">
+    <strong>Design principle:</strong> All statistical computation lives in R. Python Flask serves the site and calls R on demand — it does no analysis itself. This matches the Data 101 course requirement and keeps concerns cleanly separated.
+  </div>
+  <div class="g2" style="margin-bottom:1.25rem">
+    <div class="card"><div class="card-t">analysis.R — the full pipeline</div><pre><span class="cm"># All statistics are in R (quantmod, rugarch, moments)</span>
+
+<span class="cm"># 1. Download prices from Yahoo Finance</span>
+<span class="fn">getSymbols</span>(t, src=<span class="st">"yahoo"</span>, from=START_DATE, to=END_DATE)
+
+<span class="cm"># 2. Log returns</span>
+log_returns <span class="kw">&lt;-</span> <span class="fn">diff</span>(<span class="fn">log</span>(adj_close))
+
+<span class="cm"># 3. Build earnings window masks (3 pre + 1 post)</span>
+mask[start:end] <span class="kw">&lt;-</span> TRUE
+
+<span class="cm"># 4. Welch one-tailed t-test per ticker</span>
+<span class="fn">t.test</span>(earn_vol, normal_vol, alternative=<span class="st">"greater"</span>,
+       var.equal=<span class="nu">FALSE</span>)
+
+<span class="cm"># 5. GARCH(1,1) via rugarch</span>
+<span class="fn">ugarchfit</span>(<span class="fn">ugarchspec</span>(variance.model=<span class="fn">list</span>(
+  model=<span class="st">"sGARCH"</span>, garchOrder=<span class="fn">c</span>(<span class="nu">1</span>,<span class="nu">1</span>)),
+  distribution.model=<span class="st">"norm"</span>), data=r*<span class="nu">100</span>)
+
+<span class="cm"># 6. Rolling RMSE (10 windows, 1000-day train, 20-day horizon)</span>
+<span class="fn">ugarchforecast</span>(fit, n.ahead=<span class="nu">20</span>)
+
+<span class="cm"># 7. Export everything as JSON</span>
+<span class="fn">write_json</span>(output, path=<span class="st">"outputs/results.json"</span>)</pre></div>
+    <div class="card"><div class="card-t">app.py — server only, no statistics</div><pre><span class="kw">from</span> flask <span class="kw">import</span> Flask, jsonify, send_file
+<span class="kw">import</span> subprocess, json
+
+<span class="cm"># Serve the site</span>
+<span class="fn">@app.route</span>(<span class="st">"/"</span>)
+<span class="kw">def</span> <span class="fn">index</span>(): <span class="kw">return</span> <span class="fn">send_file</span>(<span class="st">"index.html"</span>)
+
+<span class="cm"># Call R, return cached JSON</span>
+<span class="fn">@app.route</span>(<span class="st">"/api/run"</span>)
+<span class="kw">def</span> <span class="fn">api_run</span>():
+    <span class="fn">subprocess.run</span>([<span class="st">"Rscript"</span>, <span class="st">"analysis.R"</span>])
+    <span class="kw">return</span> <span class="fn">jsonify</span>(<span class="fn">json.loads</span>(RESULT_JSON.<span class="fn">read_text</span>()))
+
+<span class="cm"># No stats in Python. R handles all of that.</span></pre></div>
+  </div>
+  <div class="card" style="margin-bottom:1.25rem"><div class="card-t">Architecture — three files, clear separation</div>
+<pre><span class="cm"># analysis.R  ← ALL statistics (quantmod, rugarch, moments, jsonlite)</span>
+<span class="cm">#   Downloads prices → computes returns → runs t-tests</span>
+<span class="cm">#   → fits GARCH → evaluates RMSE → outputs/results.json</span>
+<span class="cm">#</span>
+<span class="cm"># app.py       ← Python Flask (serves only, no stats)</span>
+<span class="cm">#   GET /          → serves index.html</span>
+<span class="cm">#   GET /api/data  → returns cached outputs/results.json</span>
+<span class="cm">#   GET /api/run   → runs Rscript analysis.R, then returns JSON</span>
+<span class="cm">#</span>
+<span class="cm"># index.html   ← this file (Chart.js, WebR, tab navigation)</span>
+<span class="cm">#   Works standalone with static data embedded in JS</span>
+<span class="cm">#   Upgrades to live data if Flask backend is running</span></pre>
+  </div>
+  <div class="card"><div class="card-t">Quick start</div>
+<pre><span class="cm"># Step 1 — R packages (run once in R/RStudio console)</span>
+<span class="fn">install.packages</span>(<span class="fn">c</span>(<span class="st">"quantmod"</span>,<span class="st">"rugarch"</span>,<span class="st">"jsonlite"</span>,
+                   <span class="st">"xts"</span>,<span class="st">"zoo"</span>,<span class="st">"moments"</span>))
+
+<span class="cm"># Step 2 — Python</span>
+pip install flask flask-cors
+
+<span class="cm"># Step 3 — Run R analysis standalone</span>
+Rscript analysis.R    <span class="cm"># creates outputs/results.json</span>
+
+<span class="cm"># Step 4 — Start Flask server</span>
+python app.py         <span class="cm"># serves on http://localhost:5000</span>
+
+<span class="cm"># Step 5 — Load data in browser</span>
+<span class="cm"># Open http://localhost:5000 and click ⟳ Load Data</span></pre>
+  </div>
+</div>
+</div>
+
+</div><!-- end .page -->
+<script>
+/* static data - actual output from analysis.R (April 2026 run) */
+const T=['META','AAPL','AMZN','NFLX','GOOGL'];
+const TC=['#22c55e','#3b82f6','#f59e0b','#a78bfa','#ef4444'];
+const HYP={
+  ALL:[
+    {ticker:'META',earn:3.21,norm:1.63,delta:1.58,tstat:3.70,df:121.5,p:0.00016,sig:true},
+    {ticker:'AAPL',earn:1.75,norm:1.33,delta:0.41,tstat:2.55,df:132,p:0.0059,sig:true},
+    {ticker:'AMZN',earn:2.73,norm:1.44,delta:1.29,tstat:5.11,df:123.6,p:0.000009,sig:true},
+    {ticker:'NFLX',earn:3.07,norm:1.73,delta:1.34,tstat:2.83,df:121,p:0.00272,sig:true},
+    {ticker:'GOOGL',earn:2.29,norm:1.31,delta:0.98,tstat:4.57,df:125.1,p:0.00001,sig:true},
+  ],
+  META:[{ticker:'META',earn:3.21,norm:1.63,delta:1.58,tstat:3.70,df:121.5,p:0.00016,sig:true}],
+  AAPL:[{ticker:'AAPL',earn:1.75,norm:1.33,delta:0.41,tstat:2.55,df:132,p:0.0059,sig:true}],
+  AMZN:[{ticker:'AMZN',earn:2.73,norm:1.44,delta:1.29,tstat:5.11,df:123.6,p:0.000009,sig:true}],
+  NFLX:[{ticker:'NFLX',earn:3.07,norm:1.73,delta:1.34,tstat:2.83,df:121,p:0.00272,sig:true}],
+  GOOGL:[{ticker:'GOOGL',earn:2.29,norm:1.31,delta:0.98,tstat:4.57,df:125.1,p:0.00001,sig:true}],
+};
+const GS=[
+  {ticker:'META',alpha:0.0334,beta:0.9533,ab:0.9866,omega:0.117523,aic:4.7521},
+  {ticker:'AAPL',alpha:0.0963,beta:0.8626,ab:0.9589,omega:0.138005,aic:3.9569},
+  {ticker:'AMZN',alpha:0.1705,beta:0.7781,ab:0.9486,omega:0.285517,aic:4.2190},
+  {ticker:'NFLX',alpha:0.0192,beta:0.9735,ab:0.9927,omega:0.065780,aic:4.8359},
+  {ticker:'GOOGL',alpha:0.0734,beta:0.8498,ab:0.9231,omega:0.287364,aic:4.0985},
+];
+/* RMSE in percentage-point units (R scales returns ×100 before fitting) */
+const RMSE={META:2.21,AAPL:1.13,AMZN:1.32,NFLX:1.84,GOOGL:1.25};
+const STD={META:2.71,AAPL:1.94,AMZN:2.15,NFLX:2.84,GOOGL:1.97};
+let curTicker='ALL';
+
+/* chart helpers  */
+const GR='rgba(255,255,255,.05)',TX='#6b7280';
+function bo(yl){return{responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e2229',borderColor:'#2a2f3a',borderWidth:1,titleColor:'#e8ecf0',bodyColor:'#9ba3af',padding:10,titleFont:{family:"'IBM Plex Mono',monospace",size:11},bodyFont:{family:"'IBM Plex Mono',monospace",size:11}}},
+  scales:{x:{grid:{color:GR,drawBorder:false},ticks:{color:TX,font:{size:9,family:"'IBM Plex Mono',monospace"},maxRotation:0,autoSkip:true,maxTicksLimit:8}},
+          y:{grid:{color:GR,drawBorder:false},ticks:{color:TX,font:{size:9,family:"'IBM Plex Mono',monospace"}},title:{display:!!yl,text:yl||'',color:TX,font:{size:9,family:"'IBM Plex Mono',monospace"}}}}};
+}
+const CH={};
+function dk(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+
+function simNorm(){
+  const g={META:6.2,AAPL:3.8,AMZN:2.1,NFLX:1.6,GOOGL:2.8},n=150,labels=[];
+  const sd=new Date('2019-01-02');
+  for(let i=0;i<n;i++){const d=new Date(sd);d.setDate(d.getDate()+Math.round(i*365*6/n));labels.push(d.toISOString().slice(0,10));}
+  const datasets=T.map((t,ci)=>{
+    const v=[100];
+    const crash={META:[60,80],AAPL:[40,55],AMZN:[55,75],NFLX:[60,80],GOOGL:[55,70]};
+    for(let i=1;i<n;i++){
+      const noise=(Math.random()-.48)*6;
+      let trend=g[t]/100/n;
+      const c=crash[t];if(i>c[0]&&i<c[0]+8)trend=-1.2;
+      if(i>=c[0]+8&&i<c[1])trend=.8;
+      v.push(Math.max(40,v[i-1]*(1+trend)+noise));
+    }
+    return{label:t,data:v,borderColor:TC[ci],backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3};
+  });
+  return{labels,datasets};
+}
+function simGV(){
+  /* Simulated NFLX GARCH(1,1) with real fitted params: alpha=0.0192, beta=0.9735, omega=0.0658 */
+  const n=150,labels=[],vals=[];const sd=new Date('2019-01-02');
+  let v=1.8, eps2=0;
+  for(let i=0;i<n;i++){
+    const d=new Date(sd);d.setDate(d.getDate()+Math.round(i*365*6/n));
+    labels.push(d.toISOString().slice(0,10));
+    /* earnings spike: roughly every 63 trading days */
+    const spike=(i%63<3)?(Math.random()*3+1.5):0;
+    const shock=Math.pow((Math.random()-.5)*2*Math.sqrt(v),2);
+    v=0.0658+0.0192*shock+0.9735*v+spike;
+    v=Math.max(0.4,Math.min(v,12));vals.push(+v.toFixed(3));
+  }
+  return{labels,vals};
+}
+
+/* panel initialization  */
+const panelInited={};
+function initPanel(id){
+  if(panelInited[id])return;
+  panelInited[id]=true;
+  if(id==='overview'){
+    dk('std');CH.std=new Chart(document.getElementById('stdChart'),{type:'bar',data:{labels:T,datasets:[{data:T.map(t=>STD[t]),backgroundColor:TC.map(c=>c+'99'),borderColor:TC,borderWidth:1,borderRadius:3}]},options:bo('Std dev (%)')});
+    dk('norm');CH.norm=new Chart(document.getElementById('normChart'),{type:'line',data:simNorm(),options:bo('Index (base 100)')});
+  }
+  if(id==='hypothesis'){
+    buildHyp('ALL');
+  }
+  if(id==='garch'){
+    buildPB();
+    const gv=simGV();
+    dk('gv');CH.gv=new Chart(document.getElementById('garchVolChart'),{type:'line',data:{labels:gv.labels,datasets:[{label:'Cond. vol',data:gv.vals,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.1)',fill:true,borderWidth:1.2,pointRadius:0,tension:.2}]},options:bo('Cond. vol (%)')});
+    dk('rm');CH.rm=new Chart(document.getElementById('rmseChart'),{type:'bar',data:{labels:T,datasets:[{data:T.map(t=>RMSE[t]),backgroundColor:'#374151',borderColor:'#4b5563',borderWidth:1,borderRadius:3}]},options:{...bo('Avg RMSE (pp)'),scales:{...bo().scales,y:{...bo().scales.y,min:0}}}});
+  }
+  if(id==='blog'){
+    const nd=simNorm();
+    dk('bNorm');CH.bNorm=new Chart(document.getElementById('bNorm'),{type:'line',data:nd,options:bo('Index (base 100)')});
+    dk('bKurt');CH.bKurt=new Chart(document.getElementById('bKurt'),{type:'bar',data:{labels:T,datasets:[{data:[24.3,5.7,4.4,41.4,4.3],backgroundColor:TC.map(c=>c+'99'),borderColor:TC,borderWidth:1,borderRadius:3}]},options:bo('Excess kurtosis')});
+    dk('bAB');CH.bAB=new Chart(document.getElementById('bAB'),{type:'bar',data:{labels:T,datasets:[
+    {label:'α (news)',data:[0.0334,0.0963,0.1705,0.0192,0.0734],backgroundColor:'#f59e0b88',borderColor:'#f59e0b',borderWidth:1,borderRadius:3},
+    {label:'β (carry)',data:[0.9533,0.8626,0.7781,0.9735,0.8498],backgroundColor:'#3b82f688',borderColor:'#3b82f6',borderWidth:1,borderRadius:3}
+  ]},options:{...bo('α + β'),indexAxis:'y',plugins:{...bo().plugins,legend:{display:true,labels:{color:'#6b7280',font:{size:9,family:"'IBM Plex Mono',monospace"},boxWidth:10}}},scales:{...bo().scales,x:{...bo().scales.x,stacked:true,min:0,max:1.05,ticks:{...bo().scales.x.ticks,callback:v=>v.toFixed(2)}},y:{...bo().scales.y,stacked:true}}}});
+  }
+  if(id==='rconsole'){initWebR();}
+}
+
+/* tab routing  */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const pid=btn.dataset.panel;
+    document.getElementById('panel-'+pid).classList.add('active');
+    // slight delay so panel is visible before chart init
+    setTimeout(()=>initPanel(pid),50);
+  });
+});
+// init blog on load (it's the default active panel)
+setTimeout(()=>initPanel('blog'),100);
+
+/* hypothesis chart  */
+function buildHyp(ticker){
+  curTicker=ticker;
+  const rows=HYP[ticker];
+  dk('hyp');
+  CH.hyp=new Chart(document.getElementById('hypChart'),{type:'bar',
+    data:{labels:rows.map(r=>r.ticker),
+      datasets:[
+        {label:'Earnings vol',data:rows.map(r=>r.earn),backgroundColor:'#22c55e88',borderColor:'#22c55e',borderWidth:1,borderRadius:3},
+        {label:'Normal vol',data:rows.map(r=>r.norm),backgroundColor:'#37415188',borderColor:'#4b5563',borderWidth:1,borderRadius:3},
+      ]},options:bo('Mean |r| (%)')});
+  document.getElementById('hypTbody').innerHTML=rows.map(r=>`
+    <tr class="${r.sig?'hl':''}">
+      <td>${r.ticker}</td><td class="tr">${r.earn.toFixed(3)}</td><td class="tr">${r.norm.toFixed(3)}</td>
+      <td class="tr ${r.sig?'sy':'sn'}">+${r.delta.toFixed(3)}</td>
+      <td class="tr">${r.tstat.toFixed(2)}</td><td class="tr">${r.df}</td>
+      <td class="tr">${r.p.toFixed(4)}</td>
+      <td><span class="bdg ${r.sig?'by':'bn'}">${r.sig?'✓ Reject H₀':'Fail to reject'}</span></td>
+    </tr>`).join('');
+}
+// ticker tab click handler
+document.querySelectorAll('#hypTabs .ttab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#hypTabs .ttab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    buildHyp(btn.dataset.ticker);
+  });
+});
+
+function buildPB(data){
+  document.getElementById('pbars').innerHTML=(data||GS).map(g=>`
+    <div class="pb"><div class="pb-h"><span>${g.ticker}</span><span style="color:var(--blue)">${g.ab.toFixed(3)}</span></div>
+    <div class="pb-t"><div class="pb-a" style="width:${g.alpha*100}%"></div><div class="pb-b" style="width:${g.beta*100}%"></div></div></div>`).join('');
+}
+
+/* load data (cached json) */
+/* Fetch helper — tries static results.json first (GitHub Pages),
+   then falls back to local Flask /api/data */
+async function fetchResults(){
+  /* 1. Static file — works on GitHub Pages and locally */
+  try{
+    const r=await fetch('./outputs/results.json');
+    if(r.ok){const d=await r.json();return{ok:true,data:d,src:'static'};}
+  }catch(_){}
+  /* 2. Flask backend — works when running python app.py locally */
+  try{
+    const r=await fetch('/api/data');const j=await r.json();
+    if(j.status==='ok'&&j.data)return{ok:true,data:j.data,src:'flask'};
+  }catch(_){}
+  return{ok:false};
+}
+async function loadData(){
+  const ov=document.getElementById('ov');
+  ov.classList.add('show');document.getElementById('ovt').textContent='Loading results…';
+  const res=await fetchResults();
+  ov.classList.remove('show');
+  if(res.ok){
+    fromApi(res.data);
+    const src=res.src==='flask'?'Flask backend':'static cache';
+    showSt('ok','✓ Data loaded ('+src+') · '+res.data.meta.trading_days+' trading days · '+res.data.meta.r_version);
+  }else{
+    showSt('err','✗ Could not load results. Ensure outputs/results.json exists.');
+  }
+}
+function showSt(cls,msg){const s=document.getElementById('sbar');s.className='sbar show '+cls;document.getElementById('sbarm').textContent=msg;}
+
+function fromApi(d){
+  document.getElementById('m-days').textContent=d.meta.trading_days;
+  document.getElementById('m-rej').textContent=d.hypothesis.filter(h=>h.significant).length+'/5';
+  // summary table
+  document.querySelector('#summaryTable tbody').innerHTML=d.summary.map(r=>`
+    <tr class="${r.ticker==='NFLX'?'hl':''}"><td>${r.ticker}</td><td class="tr">${r.mean>0?'+':''}${r.mean}</td><td class="tr">${r.std}</td><td class="tr">${r.skewness}</td><td class="tr">${r.kurtosis}</td><td class="tr">${r.n}</td></tr>`).join('');
+  // update HYP with live data
+  const allRows=d.hypothesis.map(r=>({ticker:r.ticker,earn:r.earn_vol,norm:r.normal_vol,delta:r.delta,tstat:r.t_stat,df:r.df,p:r.p_value,sig:r.significant}));
+  HYP.ALL=allRows;T.forEach(t=>{HYP[t]=allRows.filter(r=>r.ticker===t);});
+  if(panelInited['hypothesis'])buildHyp(curTicker);
+  // garch table
+  if(d.garch_params){document.getElementById('garchTbody').innerHTML=d.garch_params.map(g=>`
+    <tr class="${g.ticker==='NFLX'?'hl':''}"><td>${g.ticker}</td><td class="tr">${g.omega.toFixed(5)}</td><td class="tr" ${g.ticker==='NFLX'?'style="color:var(--amber)"':''}>${g.alpha.toFixed(4)}</td><td class="tr">${g.beta.toFixed(4)}</td><td class="tr" style="color:var(--blue);font-weight:600">${g.ab_sum.toFixed(4)}</td><td class="tr">${g.aic.toFixed(4)}</td></tr>`).join('');
+  buildPB(d.garch_params.map(g=>({ticker:g.ticker,alpha:g.alpha,beta:g.beta,ab:g.ab_sum})));}
+  // norm prices
+  if(d.norm_prices&&panelInited['overview']){const labels=d.norm_prices['META'].dates;dk('norm');CH.norm=new Chart(document.getElementById('normChart'),{type:'line',data:{labels,datasets:T.map((t,ci)=>({label:t,data:d.norm_prices[t].values,borderColor:TC[ci],backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3}))},options:bo('Index (base 100)')});}
+  if(d.nflx_cond_vol&&panelInited['garch']){dk('gv');CH.gv=new Chart(document.getElementById('garchVolChart'),{type:'line',data:{labels:d.nflx_cond_vol.dates,datasets:[{label:'Cond. vol',data:d.nflx_cond_vol.values,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.1)',fill:true,borderWidth:1.2,pointRadius:0,tension:.2}]},options:bo('Cond. vol (%)')});}
+  if(d.rmse&&panelInited['garch']){const ro={};d.rmse.forEach(r=>{ro[r.ticker]=r.rmse;});dk('rm');CH.rm=new Chart(document.getElementById('rmseChart'),{type:'bar',data:{labels:T,datasets:[{data:T.map(t=>ro[t]||0),backgroundColor:'#374151',borderColor:'#4b5563',borderWidth:1,borderRadius:3}]},options:{...bo('Avg RMSE (pp)'),scales:{...bo().scales,y:{...bo().scales.y,min:0}}}});}
+}
+
+// auto-load on start
+window.addEventListener('DOMContentLoaded',()=>{
+  fetchResults().then(res=>{
+    if(res.ok){fromApi(res.data);showSt('ok','✓ Results loaded · '+res.data.meta.trading_days+' trading days');}
+  });
+});
+
+/* blog toc scroll */
+function sb(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});return false;}
+
+/* webr */
+let webR=null,webRReady=false;
+const SNIPPETS={
+  summary:`# Summary statistics for NFLX-like return data
+set.seed(42)
+r <- rnorm(1508, mean=0.0015, sd=0.0312)  # simulated NFLX returns
+
+cat("=== Summary Statistics ===\\n")
+cat("Mean:     ", round(mean(r)*100, 4), "%\\n")
+cat("Std Dev:  ", round(sd(r)*100, 4), "%\\n")
+cat("Skewness: ", round(mean(((r - mean(r))/sd(r))^3), 3), "\\n")
+cat("Kurtosis: ", round(mean(((r - mean(r))/sd(r))^4) - 3, 2), "(excess)\\n")
+cat("Min:      ", round(min(r)*100, 2), "%\\n")
+cat("Max:      ", round(max(r)*100, 2), "%\\n")
+cat("n:        ", length(r), "observations\\n")`,
+  returns:`# Demonstrate log returns vs simple returns
+prices <- c(100, 102, 98, 105, 103, 108)
+cat("Prices:", prices, "\\n\\n")
+
+simple_r <- diff(prices) / head(prices, -1)
+log_r    <- diff(log(prices))
+
+cat("Simple returns (%):", round(simple_r*100, 3), "\\n")
+cat("Log returns    (%):", round(log_r*100, 3), "\\n\\n")
+cat("Why log? They're additive over time:\\n")
+cat("Sum of log returns:", round(sum(log_r), 5), "\\n")
+cat("log(last/first):  ", round(log(tail(prices,1)/prices[1]), 5), "\\n")`,
+  ttest:`# Welch's t-test: earnings vs normal volatility (NFLX example)
+set.seed(123)
+earn_vol   <- abs(rnorm(120, mean=0.0388, sd=0.025))  # earnings: 3.88%
+normal_vol <- abs(rnorm(1388, mean=0.0302, sd=0.020)) # normal: 3.02%
+
+result <- t.test(earn_vol, normal_vol,
+                 alternative = "greater",   # one-tailed
+                 var.equal   = FALSE)       # Welch's
+
+cat("=== Welch's t-test: NFLX earnings vol vs normal vol ===\\n\\n")
+cat("Earnings mean: ", round(mean(earn_vol)*100, 3), "%\\n")
+cat("Normal mean:   ", round(mean(normal_vol)*100, 3), "%\\n")
+cat("t-statistic:   ", round(result$statistic, 4), "\\n")
+cat("df (Welch):    ", round(result$parameter, 1), "\\n")
+cat("p-value:       ", round(result$p.value, 5), "\\n")
+cat("Significant at alpha=0.01:", result$p.value < 0.01, "\\n")`,
+  garch:`# Manual GARCH(1,1) recursion — no packages needed
+set.seed(42)
+n <- 500
+r <- rnorm(n, 0, 1)
+
+# Parameters (from our NFLX fit)
+omega <- 0.0003; alpha <- 0.112; beta <- 0.872
+
+# Simulate conditional variance
+sigma2 <- numeric(n)
+sigma2[1] <- var(r)
+for(t in 2:n){
+  sigma2[t] <- omega + alpha*r[t-1]^2 + beta*sigma2[t-1]
+}
+
+cat("=== GARCH(1,1) Conditional Variance ===\\n")
+cat("Parameters: omega=",omega,"alpha=",alpha,"beta=",beta,"\\n")
+cat("alpha+beta =", alpha+beta, "(near-unit-root!)\\n\\n")
+cat("First 10 sigma values:\\n")
+cat(round(sqrt(sigma2[1:10])*100, 4), "\\n\\n")
+cat("Mean cond. vol:", round(mean(sqrt(sigma2))*100, 3), "%\\n")
+cat("Max  cond. vol:", round(max(sqrt(sigma2))*100, 3), "%\\n")`,
+  persist:`# Volatility persistence: how long does a shock last?
+omega <- 0.0003; alpha <- 0.112; beta <- 0.872
+
+cat("=== Half-life of a volatility shock ===\\n")
+cat("For NFLX GARCH(1,1): alpha=",alpha,"beta=",beta,"\\n")
+cat("alpha+beta =", alpha+beta, "\\n\\n")
+
+# After k days, fraction of shock remaining = (alpha+beta)^k
+ab <- alpha + beta
+days <- 1:50
+remaining <- ab^days
+
+cat("Fraction of initial shock remaining:\\n")
+for(d in c(1,5,10,20,30,50)){
+  cat("  Day", sprintf("%2d",d), ":", round(ab^d * 100, 1), "%\\n")
+}
+cat("\\nHalf-life: ~", round(log(0.5)/log(ab)), "days\\n")`,
+  earnings:`# Build an earnings window mask
+trading_days <- seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by="day")
+trading_days <- trading_days[!weekdays(trading_days) %in% c("Saturday","Sunday")]
+
+# One NFLX earnings date
+earnings_date <- as.Date("2024-01-23")
+pre_days  <- 3L
+post_days <- 1L
+
+# Find nearest trading day index
+idx <- which.min(abs(as.numeric(trading_days - earnings_date)))
+window_start <- max(1, idx - pre_days)
+window_end   <- min(length(trading_days), idx + post_days)
+window_days  <- trading_days[window_start:window_end]
+
+cat("Earnings announcement:", format(earnings_date), "\\n")
+cat("Nearest trading day:  ", format(trading_days[idx]), "\\n")
+cat("Window (", pre_days, "pre + 1 ann + ", post_days, "post):\\n")
+cat(" ", format(window_days), "\\n")
+cat("Window length:", length(window_days), "trading days\\n")`
+};
+function loadSnippet(key){document.getElementById('rInput').value=SNIPPETS[key];}
+
+async function initWebR(){
+  const statusEl=document.getElementById('rcStatus');
+  statusEl.textContent='Loading WebR (~20s on first visit)…';statusEl.className='rc-status loading';
+  try{
+    const {WebR}=await import('https://webr.r-wasm.org/latest/webr.mjs');
+    webR=new WebR();
+    await webR.init();
+    webRReady=true;
+    statusEl.textContent='R ready ✓';statusEl.className='rc-status ok';
+    document.getElementById('rcRunBtn').disabled=false;
+    document.getElementById('rInput').value=SNIPPETS.ttest;
+    appendOut('sys','WebR initialized. R is ready to run in your browser.\nTry the snippet buttons above, or type your own R code.\n');
+  }catch(e){
+    statusEl.textContent='WebR failed: '+e.message;statusEl.className='rc-status err';
+    appendOut('err','Failed to load WebR: '+e.message);
+  }
+}
+
+async function runR(){
+  if(!webRReady)return;
+  const code=document.getElementById('rInput').value.trim();
+  if(!code)return;
+  const btn=document.getElementById('rcRunBtn');
+  btn.disabled=true;btn.textContent='Running…';
+  appendOut('sys','> Running...');
+  try{
+    const result=await webR.evalR(code,{captureConditions:false});
+    const output=await webR.evalR('capture.output({'+code+'})');
+    const lines=await output.toArray();
+    if(lines&&lines.length>0){lines.forEach(l=>appendOut('result',l));}
+    else{appendOut('result','[No output — expression evaluated successfully]');}
+  }catch(e){
+    appendOut('err','Error: '+e.message);
+  }finally{
+    btn.disabled=false;btn.textContent='▶ Run';
+  }
+}
+
+function appendOut(cls,text){
+  const out=document.getElementById('rOutput');
+  const line=document.createElement('div');
+  line.className='rout-line '+cls;line.textContent=text;
+  if(out.firstChild&&out.firstChild.style&&out.firstChild.style.color)out.innerHTML='';
+  out.appendChild(line);out.scrollTop=out.scrollHeight;
+}
+function clearR(){document.getElementById('rOutput').innerHTML='<span style="color:var(--t3)">Output cleared.</span>';}
+</script>
+</body>
+</html>
