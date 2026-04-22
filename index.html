@@ -735,11 +735,13 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
   <div class="callout" style="margin-bottom:.75rem">
     Download <strong>index.html</strong> and <strong>outputs/results.json</strong> (keep them in the same folder structure). Then just double-click <code>index.html</code>. The site will open in your browser with all charts and data already loaded from the embedded static values.
   </div>
-  <pre><span class="cm"># Folder structure needed:</span>
+  <pre><span class="cm"># Full folder structure:</span>
 your-folder/
-├── index.html
+├── index.html        <span class="cm"># the website</span>
+├── analysis.R        <span class="cm"># R analysis script</span>
+├── app.py            <span class="cm"># Flask server (optional)</span>
 └── outputs/
-    └── results.json</pre>
+    └── results.json  <span class="cm"># pre-computed output</span></pre>
   <div class="callout warn" style="margin-top:.75rem">If the charts show placeholder data instead of real numbers, your browser is blocking the local JSON fetch (a security restriction). Use Option B instead — it takes 30 seconds to set up.</div>
 
   <!-- option B: python static server -->
