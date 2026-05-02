@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VOL·ANALYTICS — Earnings Volatility · Data101</title>
+<title>Volatility Analytics — Earnings Volatility | Data 101</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -222,13 +223,13 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <body>
 
 <header class="hdr">
-  <div class="logo">VOL<em>·</em>ANALYTICS <em>/ DATA101</em></div>
+  <div class="logo">VOLATILITY ANALYTICS <em>/ DATA 101</em></div>
   <div class="tabs" id="mainTabs">
     <button class="tab active" data-panel="blog">Blog</button>
-    <button class="tab" data-panel="overview">Overview</button>
-    <button class="tab" data-panel="hypothesis">Hypothesis</button>
-    <button class="tab" data-panel="garch">GARCH</button>
-    <button class="tab" data-panel="bayesian">Bayesian</button>
+    <button class="tab" data-panel="overview">Data Overview</button>
+    <button class="tab" data-panel="hypothesis">Hypothesis Testing</button>
+    <button class="tab" data-panel="garch">GARCH Model</button>
+    <button class="tab" data-panel="bayesian">Bayesian Analysis</button>
     <button class="tab" data-panel="rconsole">R Console</button>
     <button class="tab" data-panel="code">Code</button>
   </div>
@@ -245,132 +246,133 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <div class="panel active" id="panel-blog">
 <div class="wrap-blog">
   <div class="sbar" id="sbar"><div class="sdot"></div><span id="sbarm"></span></div>
-  <div class="blog-kicker">● Research Paper · Data101 Final Project · April 2026</div>
-  <div class="blog-title">The Earnings Effect:<br>Six Years of Data on What<br>Happens When Tech Reports</div>
-  <div class="blog-deck">Every quarter, five of the largest tech companies publish their earnings. We wanted to know whether those dates are actually more volatile than any other week — or whether that's just a story traders tell themselves. So we checked the data.</div>
+  <div class="blog-kicker">● Data 101 · Final Project · April 2026</div>
+  <div class="blog-title">The Earnings Effect:<br>Do Tech Stocks Actually Become More Volatile Around Earnings Time?</div>
+  <div class="blog-deck">Every quarter, five of the largest tech companies publish their financial earnings. We wanted to know whether those dates are actually more volatile than any other week—or whether that's just a story traders tell themselves.</div>
+   <div class="blog-deck">So we checked the data.</div>
   <div class="blog-meta">
-    <span>Sonakshi Sharma</span><span class="bms">·</span>
-    <span>Sadhana Vasanthakumar</span><span class="bms">·</span>
-    <span>Hemadharshinii Sendhilvel</span><span class="bms">·</span>
-    <span>Rayane Skiker</span>
-    <span class="bms">|</span><span>Data101 · Spring 2026</span><span class="bms">·</span><span>~14 min read</span>
+    <span>Sonakshi Sharma · Sadhana Vasanthakumar · Hemadharshinii Sendhilvel · Rayane Skiker</span>
+    <span style="flex-basis: 100%; height: 0;"></span>
+    <!-- <span class="bms">|</span> -->
+    <span>Data 101 · Spring 2026 · ~14 min read</span>
   </div>
 
   <div class="toc">
     <div class="toc-h">Contents</div>
     <ol>
       <li><a href="#b0" onclick="return sb('b0')">Why This Question Matters</a></li>
-      <li><a href="#b1" onclick="return sb('b1')">What We Actually Built</a></li>
-      <li><a href="#b2" onclick="return sb('b2')">The Data — Six Years of Prices</a></li>
-      <li><a href="#b3" onclick="return sb('b3')">Fat Tails and Why Normal Fails</a></li>
-      <li><a href="#b4" onclick="return sb('b4')">Hypothesis Testing — What We Tested</a></li>
-      <li><a href="#b5" onclick="return sb('b5')">Results — All Five Reject H₀</a></li>
-      <li><a href="#b6" onclick="return sb('b6')">GARCH — Volatility Has Memory</a></li>
-      <li><a href="#b7" onclick="return sb('b7')">The Bayesian Extension</a></li>
+      <li><a href="#b1" onclick="return sb('b1')">Methodology & Pipeline</a></li>
+      <li><a href="#b2" onclick="return sb('b2')">The Data: Six Years of Tech Stocks</a></li>
+      <li><a href="#b3" onclick="return sb('b3')">Return Distributions and Fat Tails</a></li>
+      <li><a href="#b4" onclick="return sb('b4')">Hypothesis Testing: Do Earnings Increase Volatility?</a></li>
+      <li><a href="#b5" onclick="return sb('b5')">T-Test Results</a></li>
+      <li><a href="#b6" onclick="return sb('b6')">Volatility Modeling with GARCH(1,1)</a></li>
+      <li><a href="#b7" onclick="return sb('b7')">Bayesian Extension</a></li>
       <li><a href="#b8" onclick="return sb('b8')">Practical Implications</a></li>
-      <li><a href="#b9" onclick="return sb('b9')">Limitations & What's Next</a></li>
+      <li><a href="#b9" onclick="return sb('b9')">Limitations & Future Work</a></li>
     </ol>
   </div>
 
   <div class="blog-body">
 
     <h3 id="b0">Why This Question Matters</h3>
-    <p>Every quarter, Meta, Apple, Amazon, Netflix, and Alphabet (Google) publish their earnings results. In the hours before and after each release, these stocks move in ways that traders treat as predictable — options prices on these names routinely spike before earnings because the market expects something unusual to happen. But is that expectation backed up by the actual data?</p>
-    <p>We wanted a simple answer to a simple question: are the five trading days around an earnings announcement actually more volatile than any other week? Not "does volatility feel higher" — does the math say it's higher, consistently, across six years of data?</p>
-    <p>To answer it properly we used three different statistical methods: </p>
-    <br>
-    <p> A classical hypothesis test that asks if the difference is real or just noise </p>
-    <p> A GARCH time-series model that accounts for volatile days clustering together </p>
-    <p> A Bayesian extension that gives honest uncertainty ranges instead of false precision </p>
-    <br>
+    <p>Every quarter, Meta (META), Apple (AAPL), Amazon (AMZN), Netflix (NFLX), and Alphabet (GOOGL) publish their earnings results, which contain the company's financial performance for the period. In the hours before and after each release, these stocks move in ways that traders treat as predictable. Option prices on these names routinely spike before earnings time because they reflect the market's expectation of how much the stock will move. But is that expectation backed up by the actual data?</p>
+    <p>We wanted a simple answer to a simple question: are the five trading days around an earnings announcement actually more volatile than any other week? Not "does volatility feel higher", but does the math say it's higher, consistently, across six years of data?</p>
+    <p>To answer this question properly we used three different statistical methods:<br>● a classical hypothesis test that asks whether the difference is real or just noise,<br>● a time-series model (GARCH) that accounts for the fact that volatile days cluster together, and<br>● a Bayesian extension that accounts for uncertainty.</p>
     <p>All the computation is in R; the code is included and reproducible.</p>
-    <div class="basid">"The core question: in the five trading days around an earnings call, do these stocks move <strong>measurably more</strong> than usual — and how long does that elevated volatility last?"</div>
+    <div class="basid">The core question: In the five trading days around an earnings announcement, do these stocks move <strong>measurably more</strong> than usual?</div>
 
-    <h3 id="b1">What We Actually Built</h3>
-    <p>This is not just a data analysis — it is a full reproducible pipeline. The project has three layers: </p>
-    <br>
-    <p>An <strong>R analysis engine</strong> (<code>analysis.R</code>) that handles all the heavy statistical lifting using the <code>quantmod</code>, <code>rugarch</code>, and <code>moments</code> packages, </p>
-    <p>A <strong>Python Flask server</strong> (<code>app.py</code>) that serves this website and calls the R script on demand, </p>
-    <p>This <strong>interactive frontend</strong> that presents everything with live charts. </p>
-    <p>The R script downloads six years of daily price data from Yahoo Finance, computes log returns, labels the earnings windows, runs one-tailed Welch's t-tests per ticker, fits GARCH(1,1) models, and evaluates rolling forecast accuracy. A separate Bayesian GARCH was run offline using PyMC for NFLX. Every result is written to a JSON file that powers this dashboard — so the site can be read as both a paper and an interactive tool.</p>
-    <div class="basid">"The <strong>R Console tab</strong> lets you run real R code in your browser — no installation needed. Use the snippet buttons to step through each stage of the analysis. If you're not an R user, the results are fully described in this blog."</div>
+    <h3 id="b1">Methodology & Pipeline</h3>
+    <p>This is not just data analysis—it is a full reproducible pipeline. </p>
+    <p>The project has three layers:<br>● an <strong>R analysis engine</strong> (<code>analysis.R</code>) that handles all the heavy statistical lifting using the <code>quantmod</code>, <code>rugarch</code>, and <code>moments</code> packages,<br>● a lightweight <strong>Python Flask server</strong> (<code>app.py</code>) that serves this website and calls the R script on demand, and<br>● this <strong>interactive frontend</strong> that presents everything with live charts.</p>
+    <p>The R script downloads six years of daily price data from Yahoo Finance. It computes log returns, labels the earnings windows, and runs one-tailed Welch's t-tests per ticker. It then fits GARCH(1,1) models and evaluates rolling forecast accuracy. A separate Bayesian GARCH was run offline using PyMC for NFLX. All results are written to a JSON file that powers this dashboard, which allows the site to function as both a paper and an interactive tool.</p>
+    <div class="basid">The <strong>R Console tab</strong> lets you run real R code in your browser—no installation needed. Use the snippet buttons to step through each stage of the analysis. If you're not an R user, the results are fully described in this blog.</div>
 
-    <h3 id="b2">The Data — Six Years of Prices</h3>
-    <p>We downloaded daily adjusted closing prices for META, AAPL, AMZN, NFLX, and GOOGL from January 2019 through December 2024 using R's <code>quantmod::getSymbols()</code> function, which pulls from Yahoo Finance. This gave us approximately <strong>1,508 trading days</strong> per ticker — roughly 7,540 data points in total.</p>
-    <p>From daily prices we computed <strong>log returns</strong>, which are the percentage change from one day to the next, and they've been expressed in a slightly different math form: <span class="bstat">r_t = ln(P_t / P_{t−1})</span>. We use log returns rather than percentage changes because they handle large moves more symmetrically and behave better in statistical models. For example, if a stock falls 50% and then rises 100%, simple returns will add up incorrectly, but log returns do not. Each ticker yielded 1,507 return observations over the six-year period.</p>
-    <p>For each company we manually collected 24 quarterly earnings dates (2019–2024) from Nasdaq's public calendar. We defined an <strong>earnings window</strong> as the 3 trading days before the announcement, the announcement day itself, and 1 trading day after — 5 days per quarter, around 120 days per ticker across the full period. The pre-announcement days matter because information leaks early and traders position ahead of the number. The single post-announcement day captures the immediate reaction. Everything outside those windows is considered "normal" trading and forms our comparison group.</p>
-    <p>The period 2019–2024 was deliberately chosen to include drastic market changes: the 2020 COVID crash and V-shaped recovery, the 2021 meme-stock bubble and tech euphoria, the 2022 rate-hike-driven tech selloff (NFLX fell 75%, META fell 65%), and the 2023–24 AI-driven recovery. This variety tests whether earnings effects are robust or regime-dependent.</p>
+    <h3 id="b2">The Data: Six Years of Tech Stocks</h3>
+    <p>We downloaded daily adjusted closing prices for META, AAPL, AMZN, NFLX, and GOOGL from January 2019 through December 2024 using R's <code>quantmod::getSymbols()</code> function, which pulls from Yahoo Finance. This gave us approximately <strong>1,508 trading days</strong> per ticker—roughly 7,540 data points in total.</p>
+    <p>From daily prices we computed <strong>log returns</strong>—which is the percentage change from one day to the next, expressed in a slightly different math form: \( r_t = \ln\left(\frac{P_t}{P_{t-1}}\right) \). \( r_T \) is the log return on day t (i.e. daily return), \( P_t \) is the adjusted closing price on day t, and \( P_{t-1} \) is the adjusted closing price from the previous trading day. We use log returns rather than simple percentage changes because they handle large moves more symmetrically and behave better in statistical models. If a stock falls 50% and then rises 100%, simple returns add up incorrectly—log returns do not. Each ticker yielded 1,507 return observations over the six-year period.</p>
+    <p>For each company we manually collected 24 quarterly earnings dates (2019–2024) from Nasdaq's public calendar, since historical earnings timestamps are not consistently available in a single structured dataset. We defined an <strong>earnings window</strong> as the 3 trading days before the announcement, the announcement day itself, and 1 trading day after—adding up to 5 days per quarter and around 120 days per ticker across the full period. The pre-announcement days matter because information leaks early and traders position themselves ahead of the number. The single post-announcement day captures the immediate reaction. We considered everything outside those windows as "normal" trading and this formed our comparison group.</p>
+    <p>The period 2019–2024 was deliberately chosen to include diverse market regimes: the 2020 COVID crash and V-shaped recovery, the 2021 meme-stock bubble and tech euphoria, the 2022 rate-hike-driven tech selloff (NFLX fell 75%, META fell 65%), and the 2023–24 AI-driven recovery. This variety stress-tests whether earnings effects are robust or regime-dependent.</p>
 
     <div class="bfig">
       <div class="leg"><span class="li"><span class="lsq" style="background:#22c55e"></span>META</span><span class="li"><span class="lsq" style="background:#3b82f6"></span>AAPL</span><span class="li"><span class="lsq" style="background:#f59e0b"></span>AMZN</span><span class="li"><span class="lsq" style="background:#a78bfa"></span>NFLX</span><span class="li"><span class="lsq" style="background:#ef4444"></span>GOOGL</span></div>
       <div class="cw h280"><canvas id="bNorm" role="img" aria-label="Normalised prices blog">Normalised prices.</canvas></div>
-      <div class="bfig-cap">Fig. 1 · Normalised closing prices (base = 100, Jan 2019). Generated by R's <code>quantmod::getSymbols()</code> + <code>Ad()</code> for adjusted close prices. META and NFLX show the largest multi-year appreciation despite severe mid-period drawdowns. AMZN dropped ~55% in 2022 before recovering sharply in 2023.</div>
+      <div class="bfig-cap"> Generated by R's <code>quantmod::getSymbols()</code> + <code>Ad()</code> for adjusted close prices. META and NFLX show the largest multi-year appreciation despite severe mid-period drawdowns. AMZN dropped ~55% in 2022 before recovering sharply in 2023.</div>
     </div>
 
-    <h3 id="b3">Fat Tails and Why Normal Fails</h3>
-    <p>Before any formal testing, we looked at the distribution of daily returns. The first thing that stands out is that <em>none of these stocks follow a normal distribution</em>, and that matters a lot for how we model them.</p>
-    <p>Every ticker shows <strong>negative skewness</strong>. This means that big down days happen more often and are more extreme than equivalently-sized up days. The distribution isn't a symmetric bell curve, but rather skewed to the left. NFLX has the most extreme skewness at <span class="bstat r">−2.48</span>. The main cause of that figure is the April 2022 session where NFLX fell 35% after reporting its first subscriber loss. META comes in second at <span class="bstat r">−1.20</span>, reflecting its own crash in February 2022. In both cases, the downside event had no equivalent upside counterpart in six years of data. Positive surprises rarely cause equivalent 35% daily gains.</p>
-    <p>All five also show large <strong>excess kurtosis</strong>, where the tails of the distribution are "fatter" than a normal distribution would predict. NFLX's excess kurtosis is <span class="bstat a">41.4</span> – far beyond what a normal distribution would allow. This is driven largely by the April 2022 session where NFLX fell 35% in a single day, as one extreme observation can dominate the kurtosis statistic in a fat-tailed series. META comes in second at <span class="bstat a">24.3</span>. AAPL, AMZN, and GOOGL are milder at <span class="bstat a">5–6</span>, more consistent with a typical large-cap equity. Extreme moves happen far more often than a normal distribution predicts for all five, but NFLX is in a different category entirely.</p>
-    <p>This observation — fat tails and volatility clustering — is the core motivation for GARCH modelling. In a GARCH model, large shocks today make large shocks tomorrow more likely, and the conditional variance is tracked explicitly day by day rather than assumed constant.</p>
+    <h3 id="b3">Return Distributions and Fat Tails</h3>
+    <p>Before any formal testing, we looked at the distribution of daily returns. The first thing that stands out is that <em>none of these stocks follow a normal distribution</em>—and that turns out to matter a lot for how we model them.</p>
+    <p>Every ticker shows <strong>negative skewness</strong>. In plain terms: big down days happen more often and are more extreme than equivalently-sized up days. The distribution isn't a symmetric bell curve; it's skewed to the left. NFLX has the most extreme skewness at <span class="bstat r">−2.48</span>. The April 2022 session—where NFLX fell 35% after reporting its first subscriber loss—is the dominant driver of that figure. META comes in second at <span class="bstat r">−1.20</span>, reflecting its own February 2022 crash. In both cases, the downside event had no equivalent upside counterpart over the full six-year period. Positive surprises rarely produce gains of comparable magnitude.</p>
+    <p>All five also show large <strong>excess kurtosis</strong>—the tails of the distribution are "fatter" than a normal distribution would predict. In simple terms, higher kurtosis means extreme moves happen more often than you would expect. NFLX's excess kurtosis is <span class="bstat a">41.4</span>—far beyond what a normal distribution would allow. This is driven largely by the April 2022 session where NFLX fell 35% in a single day—one extreme observation can dominate the kurtosis statistic in a fat-tailed series. META comes in second at 24.3. AAPL, AMZN, and GOOGL are milder at 5–6, more consistent with a typical large-cap equity. Extreme moves happen far more often than a normal distribution predicts across all five, but NFLX is in a different category entirely.</p>
+    <p>This empirical observation—fat tails and volatility clustering—is the core motivation for GARCH modelling. In a GARCH model, large shocks today make large shocks tomorrow more likely, and the conditional variance is tracked explicitly day by day rather than assumed constant.</p>
 
     <div class="bfig">
       <div class="cw h220"><canvas id="bKurt" role="img" aria-label="Kurtosis chart">Kurtosis.</canvas></div>
       <div class="bfig-cap">Fig. 2 · Excess kurtosis per ticker. R: <code>moments::kurtosis(r) - 3</code>. NFLX at 41.4 is dominated by the April 2022 −35% session. META at 24.3 reflects the Feb 2022 −26% single-day crash. AAPL, AMZN, GOOGL land at 4–6, still fat-tailed but in a normal range for large-cap tech.</div>
     </div>
 
-    <h3 id="b4">Hypothesis Testing — What We Tested</h3>
-    <p>With our data, we formalized our question as a one-tailed statistical hypothesis test. We have two groups of observations for each stock — absolute daily returns during earnings windows, and absolute daily returns during all other days. We want to know whether the first group has a significantly higher mean than the second.</p>
-    <p>We use <strong>absolute returns</strong> as our volatility proxy rather than squared returns, because they are less sensitive to outliers and easier to interpret in percentage terms. An absolute return of 2.5% means the stock moved 2.5% that day, up or down — that is our measure of "how volatile was today."</p>
-    <p>We chose <strong>Welch's t-test</strong> rather than the standard Student's t-test because the two groups have unequal variances (earnings days are inherently more dispersed), and Welch's test does not assume equal variances. It adjusts the degrees of freedom accordingly, giving a more accurate p-value. Our null hypothesis will assume that earnings announcements have no effect on the stocks themselves. Significance was set at <strong>α = 0.01</strong> — a strict threshold, requiring strong evidence before rejecting the null.</p>
-    <p>The test is one-tailed, since we're only interested in whether earnings weeks have <em>higher</em> volatility, not lower. We have theoretical reasons to expect higher volatility (information release, analyst reactions, algorithmic trading) and no reason to expect lower.</p>
+    <h3 id="b4">Hypothesis Testing: Do Earnings Increase Volatility?</h3>
+    <p>With the data in hand, we formalized our question as a one-tailed statistical hypothesis test. The logic is straightforward—we have two groups of observations for each stock: absolute daily returns during earnings windows and absolute daily returns during all other days. We want to know whether the first group has a significantly higher mean than the second.</p>
+    <div class="basid"><strong>Null Hypothesis (H<sub>0</sub>, no effect):</strong> Mean volatility during earnings windows is less than or equal to normal periods<br><strong>Alternative Hypothesis (H<sub>1</sub>, earnings effect):</strong> Mean volatility during earnings windows is higher than normal periods<br></div>
+    <p>We use <strong>absolute returns</strong> as our volatility proxy rather than squared returns, because they are less sensitive to outliers and easier to interpret. An absolute return of 2.5% means the stock moved 2.5% that day, up or down—that is our measure of daily volatility.</p>
+    <p>We chose <strong>Welch's t-test</strong> rather than the standard Student's t-test because the two groups have unequal variances (earnings days are inherently more dispersed), and Welch's t-test does not assume equal variances. It adjusts the degrees of freedom accordingly, producing a more accurate p-value. Significance was set at <strong>α = 0.01</strong>—a strict threshold, requiring strong evidence before rejecting the null.</p>
+    <p>The test is one-tailed because we are only interested in whether earnings weeks have <em>higher</em> volatility, not lower. We have theoretical reasons to expect higher volatility (information release, analyst reactions, algorithmic trading) and no reason to expect lower.</p>
 
-    <h3 id="b5">Results — All Five Reject The Null Hypothesis</h3>
-    <p>When we ran the analysis on the actual six-year dataset, the results were stronger than the initial draft predicted. All five tickers reject the null hypothesis at α = 0.01. The degree of the effect varies considerably and the story behind each ticker explains why.</p>
+    <h3 id="b5">T-Test Results</h3>
+    <p>When we performed this test on the actual six-year dataset, the results were stronger than we predicted on our initial draft. All five tickers reject H<sub>0</sub> at α = 0.01. The degree of the effect varies considerably, and the story behind each ticker explains why.<br><em>Note:<br>● Δ refers to the effect size (difference in mean volatility between earnings and normal periods), measured in percentage points<br>● t is the test statistic from Welch's t-test (how large the difference is relative to its uncertainty)<br>● p-value is the probability of observing a result at least this extreme if there were actually no earnings effect</em></p>
 
     <div class="fr-list">
-      <div class="fr hl-r"><span class="fi">✓</span><span><strong>META</strong> — earnings vol <span class="bstat g">3.21%</span> vs normal <span class="bstat">1.63%</span> — p = 0.00016, Δ = +1.58 pp. The largest absolute gap in the dataset. Meta's business went through dramatic regime shifts: the Metaverse pivot in 2021, the catastrophic 2022 earnings where the stock fell 26% in a single day, and the "Year of Efficiency" in 2023 that drove one of the fastest large-cap recoveries on record. Each created extreme uncertainty heading into earnings that is simply absent in normal weeks.</span></div>
-      <div class="fr hl-r"><span class="fi">✓</span><span><strong>AAPL</strong> — earnings vol <span class="bstat g">1.75%</span> vs normal <span class="bstat">1.33%</span> — p = 0.006, Δ = +0.41 pp. Significant, but the smallest delta. Apple is the most "priced-in" earnings name in markets, meaning its stock price has already factored in expected news, events, and risks. Their supply chain data is practically public, iPhone cycles are widely tracked, analyst consensus is tight. Even so, the data shows a real and consistent bump. The market cannot fully neutralize earnings uncertainty even for the most closely watched stock in the world.</span></div>
-      <div class="fr hl-r"><span class="fi">✓</span><span><strong>AMZN</strong> — earnings vol <span class="bstat g">2.73%</span> vs normal <span class="bstat">1.44%</span> — p &lt; 0.00001, t = 5.11, Δ = +1.29 pp. The sharpest t-statistic of any ticker. Amazon has two major pillars — retail e-commerce and AWS cloud computing — each with different economic drivers and margin profiles. Results regularly shock on one dimension while disappointing on another, producing outsized reactions even when headline revenue lands in-line.</span></div>
-      <div class="fr hl-r"><span class="fi">✓</span><span><strong>NFLX</strong> — earnings vol <span class="bstat g">3.07%</span> vs normal <span class="bstat">1.73%</span> — p = 0.003, Δ = +1.34 pp. Netflix is the canonical "one-metric company" — subscriber count drives everything. That single number can swing the stock ±20% depending on a miss or beat by a few hundred thousand users. The data confirms what options traders have priced in for years.</span></div>
-      <div class="fr hl-r"><span class="fi">✓</span><span><strong>GOOGL</strong> — earnings vol <span class="bstat g">2.29%</span> vs normal <span class="bstat">1.31%</span> — p = 0.00001, t = 4.57, Δ = +0.98 pp. Our initial draft predicted GOOGL would fail to reach significance (placeholder p = 0.089). The real result inverted that completely. Alphabet's revenue diversification doesn't neutralize earnings risk — it just makes the sources of surprise harder to predict, which is arguably a larger problem for the market.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>META</strong> — Earnings: <span class="bstat g">3.21%</span> | Normal: <span class="bstat">1.63%</span> | p = 0.00016 | Δ = +1.58 pp<br>Largest effect in the sample, with earnings volatility roughly doubling relative to normal trading days. Meta's earnings windows align with repeated shifts in market narrative and expectation rather than incremental updates. Across 2019-2024, the company moved through multiple regime changes, including the 2021 Metaverse pilot, the 2022 earnings-driven drawdown, and the 2023-24 focus on efficiency and profitability. These transitions contribute to repeated repricing around earnings announcements, producing consistently elevated short-term volatility.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>AAPL</strong> — Earnings: <span class="bstat g">1.75%</span> | Normal: <span class="bstat">1.33%</span> | p = 0.006 | Δ = +0.41 pp<br>Significant, but the smallest effect in the sample. Apple is among the most "priced-in" earnings names in markets: supply chain data is widely tracked, iPhone cycles are heavily anticipated, and analyst forecasts are relatively tight. Despite this, earnings periods still produce a measurable increase in volatility, suggesting that even highly predictable firms retain residual uncertainty at announcement time.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>AMZN</strong> — Earnings: <span class="bstat g">2.73%</span> | Normal: <span class="bstat">1.44%</span> | p &lt; 0.00001 | t = 5.11 | Δ = +1.29 pp<br>The strongest statistical signal in the sample based on the t-statistic. Amazon operates across two distinct business segments, retail and AWS cloud services, with different drivers and margins. Earnings announcements often reveal divergence between these segments, leading to sharp re-pricing even when headline figures appear stable.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>NFLX</strong> — Earnings: <span class="bstat g">3.07%</span> | Normal: <span class="bstat">1.73%</span> | p = 0.003 | Δ = +1.34 pp<br>Netflix behaves as a near "single-metric" stock, where subscriber growth dominates validation. Small deviations from expectations can produce large price reactions,  which is reflected in consistently elevated earnings-period volatility. The results align with the large option-implied moves typically priced into NFLX earnings.</span></div>
+      <div class="fr hl-r"><span class="fi">✓</span><span><strong>GOOGL</strong> — Earnings: <span class="bstat g">2.29%</span> | Normal: <span class="bstat">1.31%</span> | p = 0.00001 | t = 4.57 | Δ = +0.98 pp<br>The result is stronger than initially expected (original draft: p = 0.089). Alphabet's diversified revenue base does not eliminate earnings-driven volatility; instead, it disperses uncertainty across multiple segments, making surprises harder to anticipate and still producing significant market reactions.</span></div>
     </div>
 
-    <div class="basid">"Our initial draft expected 3 of 5. Every ticker cleared the bar. The weakest result — AAPL at p = 0.006 — is still six times more significant than the conventional threshold. <strong>Earnings move these stocks. That's no longer a question.</strong>"</div>
+    <p>Our initial draft expected 3 of 5. Every ticker cleared the bar. The weakest result—AAPL at p = 0.006—is still six times more significant than the conventional threshold.</p>
+    <div class="basid">Rejecting the null hypothesis means that the observed increase in volatility during earnings windows is too large to be explained by random variation alone, at the chosen significance level.<br><strong>Earnings move these stocks. That's no longer a question.</strong></div>
 
-    <h3 id="b6">GARCH — Volatility Has Memory</h3>
-    <p>The t-test tells us whether earnings weeks are more volatile on average — but it treats every day as independent, with no memory. In reality, turbulent days cluster: a big move today makes a big move tomorrow more likely. The GARCH(1,1) model was built specifically to capture this clustering by tracking a time-varying estimate of risk that updates every day based on recent history.</p>
-    <p>The model tracks three things to estimate today's risk: <span class="bstat">ω</span> (a baseline level of volatility that always pulls things back), <span class="bstat">α</span> (how much yesterday's surprise — a big move — feeds into today's risk estimate), and <span class="bstat">β</span> (how much of yesterday's risk level carries over directly). Think of it as a weighted average: the market has a long-run "normal" risk level, each day's shock adds some new information, and yesterday's risk estimate persists with weight β. R's <code>rugarch</code> package estimates all three by maximum likelihood.</p>
-    <p>The GARCH results reveal a more nuanced picture than the initial draft suggested. All five tickers show strong volatility persistence, but the parameters vary meaningfully across names. <strong>NFLX has the highest persistence</strong> (α + β = 0.993) and the lowest news reactivity (α = 0.019): once NFLX volatility is elevated — say, after an earnings miss — it decays toward baseline very slowly, over many weeks. <strong>AMZN has the sharpest news term</strong> (α = 0.171): it reacts most strongly to new shocks, but also mean-reverts faster (α + β = 0.949). <strong>GOOGL mean-reverts fastest</strong> of the group (α + β = 0.923), meaning earnings-driven volatility dissipates relatively quickly for Alphabet compared to the others.</p>
+    <h3 id="b6">Volatility Modeling with GARCH(1,1)</h3>
+    <p>The t-test tells us whether earnings weeks are more volatile on average, but it treats every day as independent, with no memory. In reality, turbulent days cluster: a big move today makes another big move tomorrow more likely. Anyone who lived through March 2020 or the 2022 tech selloff has seen this pattern before. The GARCH(1,1) model (the name stands for Generalized Autoregressive Conditional Heteroskedasticity) is designed to capture this by producing a time-varying estimate of volatility that updates each day based on recent shocks.</p>
+    <p>The model tracks three components of risk: <span class="bstat">ω</span> (a long-run baseline level of volatility), <span class="bstat">α</span> (how much new shocks—yesterday's return—affects today's volatility), and <span class="bstat">β</span> (how much of yesterday's volatility carries forward). Think of it as a weighted average: the market has a long-run "normal" risk level, each day's shock adds some new information, and yesterday's risk estimate persists with weight β. R's <code>rugarch</code> package estimates these parameters by using maximum likelihood.</p>
+    <p>The GARCH results show clear differences in how volatility evolves across companies. All five tickers exhibit strong volatility persistence, but the balance between "shock sensitivity" and "memory" varies. <strong>NFLX has the highest persistence</strong> (α + β = 0.993), meaning volatility decays very slowly after spikes, often remaining elevated for weeks. <strong>AMZN shows the strongest reaction to new information</strong> (α = 0.171), but slightly faster mean reversion (α + β = 0.949). <strong>GOOGL mean-reverts the fastest</strong> (α + β = 0.923), suggesting earnings-driven volatility fades more quickly than in the other companies.</p>
 
     <div class="bfig">
       <div class="cw h200"><canvas id="bAB" role="img" aria-label="Alpha plus beta chart">AB persistence.</canvas></div>
       <div class="bfig-cap">Fig. 3 · α + β persistence by ticker. R's <code>rugarch::ugarchfit(sGARCH(1,1))</code>, α (amber) and β (blue) shown separately. Range: GOOGL at 0.923 (fastest reversion) to NFLX at 0.993 (slowest). AMZN's α = 0.171 stands out as the most news-reactive model.</div>
     </div>
 
-    <p>The rolling out-of-sample RMSE (1,000-day training window, 20-day forecast horizon, 10 windows per ticker) ranged from <span class="bstat">1.13 pp for AAPL</span> to <span class="bstat a">2.21 pp for META</span>, measured in percentage-point units. These values reflect the genuine difficulty of forecasting realized volatility — which is measured as |r_t|, a noisy single-day proxy. The GARCH conditional variance is not meant to predict each day's exact move; it tracks the underlying risk regime, which is a harder and more useful thing to do.</p>
+    <p>To evaluate how well the model performs out of sample, we compute rolling forecast errors using a 1,000-day training window and a 20-day prediction horizon. We measure performance using RMSE (root mean square error), which captures how far the model's predicted volatility is from the actual realized volatility on average.</p>
+    <p>Across tickers, RMSE ranges from <span class="bstat">1.13 pp</span> (AAPL) to <span class="bstat a">2.21 pp</span> (META). These values reflect the difficulty of forecasting realized volatility, which is itself noisy because it is based on daily absolutely returns |r<sub>t</sub>|. The key point is that GARCH is not trying to predict exact daily moves—it is modeling the underlying volatility regime. That is a smoother, more stable quantity than individual returns, and therefore a more realistic forecasting target.</p>
 
-    <h3 id="b7">The Bayesian Extension</h3>
-    <p>The GARCH fit gives us point estimates for α, β, and ω. But how confident should we be in those numbers? If our dataset were slightly different — a different 6-year window, or different earnings shocks — would the parameters be materially different? A Bayesian inference can answer this question.</p>
-    <p>We specified a Bayesian GARCH model for NFLX — the highest-volatility ticker, chosen because it provides the most information about extreme volatility dynamics. The sampler configuration was 800 posterior draws across 2 NUTS chains with a target acceptance rate of 0.90, run on a 500-day NFLX return window. <em>A note on transparency</em>: the full PyMC NUTS sampler is computationally expensive and was run as a one-time offline step. The posterior results reported here come from that run; they are not re-computed on each page load. The <code>analysis.R</code> script documents this explicitly with a note that the Bayesian block contains cached results. We flag this rather than quietly hard-coding it because reproducibility matters.</p>
-    <p>The priors were chosen to encode financial domain knowledge: <span class="bstat">Beta(2,5)</span> for α, which places most probability mass below 0.2 (news terms are typically small); and <span class="bstat">Beta(5,2)</span> for β, which places most mass above 0.8 (persistence is typically high). These are not "uninformative" priors — they encode what financial econometricians know about GARCH parameters from 40 years of literature.</p>
-    <p>The posterior means were <span class="bstat g">α = 0.108 [0.092, 0.124]</span> and <span class="bstat g">β = 0.878 [0.851, 0.903]</span> at 95% HPD (Highest Posterior Density) intervals. The intervals are narrow — 500 days of data is sufficient to identify both parameters with precision. The sum α + β = 0.986 sits inside the interval [0.960, 0.998], confirming near-integration even accounting for parameter uncertainty.</p>
-    <p>The most practically important result: Bayesian prediction intervals captured <strong>93%</strong> of out-of-sample realised volatility, compared to <strong>86%</strong> for frequentist GARCH. The 7-percentage-point gap arises because the Bayesian model propagates parameter uncertainty forward into its forecasts. When you're not sure whether α is 0.095 or 0.120, your forecast distribution should be wider — and a Bayesian model makes it wider automatically. A frequentist model pretends it knows α exactly, producing overconfident intervals.</p>
-    <div class="basid">"For a risk desk pricing options or setting margin requirements around NFLX earnings: the 7pp coverage gap means the frequentist model <strong>understates tail risk</strong> in roughly 7% of trading weeks. That's not academic — it's real exposure."</div>
+    <h3 id="b7">Bayesian Extension</h3>
+    <p>The GARCH fit gives us point estimates for α, β, and ω. But how confident should we be in those numbers? If our dataset were slightly different—a different 6-year window or different earnings shocks—would the parameters be materially different? Standard (frequentist) methods like maximum likelihood estimation give us a single best estimate of these parameters, along with confidence intervals, but they treat those estimates as fixed when making predictions. Bayesian inference instead treats the parameters themselves as uncertain and models that uncertainty explicitly.</p>
+    <p>We specified a Bayesian GARCH model for NFLX—the highest-volatility ticker, chosen because it provides the most information about extreme volatility dynamics. We used a modern sampling method (a Markov Chain Monte Carlo algorithm) to generate many plausible values of the model parameters, where values that better explain the data are sampled more often than less likely ones. This was based on a 500-day window of NFLX returns. These samples come from the posterior distribution—the probability distribution over possible parameter values, given the data and our assumptions.</p>
+    <p><em>A note on transparency:</em> the full sampling procedure is computationally expensive and was run as a one-time offline step. The posterior results reported here come from that run; they are not re-computed on each page load. The <code>analysis.R</code> script documents this explicitly with a note that the Bayesian block contains cached results. We flag this rather than quietly hard-coding it because reproducibility matters.</p>
+    <p>The priors—our assumptions about what parameter values are likely before seeing the data—were chosen to reflect typical behavior in financial markets: the "shock" term (α) is usually small, while the persistence term (β) is usually large. These assumptions come from decades of empirical research on volatility models, rather than being completely uninformative.
+    <p>The posterior means—the average values across all sampled parameter draws—were <span class="bstat g">α = 0.108 [0.092, 0.124]</span> and <span class="bstat g">β = 0.878 [0.851, 0.903]</span> with 95% credible intervals (the Bayesian analogue of confidence intervals). The intervals are narrow—500 days of data is sufficient to identify both parameters with precision. The sum α + β = 0.986 sits inside the interval [0.960, 0.998], confirming that volatility is highly persistent: once it rises, it tends to stay elevated for a long time.</p>
+    <p>The most practically important result: Bayesian prediction intervals captured <strong>93%</strong> of future volatility (measured on data the model had not seen during training), compared to <strong>86%</strong> for the standard GARCH model. In other words, the Bayesian model's prediction ranges contained the true volatility 93% of the time, versus 86% for the frequentist approach.</p>
+    <p>The 7-percentage-point gap arises because the Bayesian model carries uncertainty about the parameters forward into its forecasts, instead of treating them as fixed numbers. When you're not sure whether α is 0.095 or 0.120, your forecast should reflect that uncertainty by being slightly wider—and the Bayesian model does this automatically. A standard model, by contrast, effectively treats the estimated parameters as exact, which can lead to overly narrow prediction ranges.</p>
+    <div class="basid">For a risk desk pricing options or setting margin requirements around NFLX earnings, the 7pp coverage gap means the standard model <strong>understates</strong> the risk of extreme moves ("tail risk") in roughly 7% of trading weeks. That's not academic—it's real exposure.</div>
 
     <h3 id="b8">Practical Implications</h3>
     <p>Taken together, these results have clear practical implications for anyone with exposure to these names around earnings dates.</p>
-    <p><strong>For options traders:</strong> selling short-dated straddles into META, AMZN, or NFLX earnings is selling volatility that is statistically elevated. The t-test tells you the premium is justified. But the GARCH model tells you that post-earnings elevated volatility does not snap back to baseline by Friday — it decays slowly over several weeks. If you sell the straddle and then forget about it, you may be carrying more gamma risk than you think.</p>
-    <p><strong>For risk managers:</strong> standard Value-at-Risk models that assume constant volatility will systematically underestimate risk in earnings windows for META, AMZN, and NFLX. A simple fix: multiply the volatility estimate by the observed ratio (earnings vol / normal vol) for the relevant stock in the 5-day window around its earnings date. For NFLX, that ratio is 3.07 / 1.73 = 1.78 — a 78% upward adjustment to the baseline volatility estimate during the five-day earnings window.</p>
-    <p><strong>For portfolio construction:</strong> Every name in this group shows a real earnings effect, but the magnitude matters for hedging decisions. META and NFLX show the largest absolute gaps — earnings weeks are roughly twice as volatile as normal weeks. AAPL and GOOGL show more modest effects: significant in aggregate, but the delta is small enough (0.41 pp and 0.98 pp respectively) that the cost of hedging may exceed the incremental risk in many practical contexts.</p>
+    <p><strong>For Options Traders:</strong> Selling short-dated straddles (an options strategy that profits if the stock doesn't move much) into META, AMZN, or NFLX earnings is effectively betting that the stock will not move as much as the market expects. The t-test tells you the premium is justified. But the GARCH model tells you that post-earnings elevated volatility does not snap back to baseline by Friday—it decays slowly over several weeks. If you sell the straddle and then forget about it, you may be carrying more risk from large price swings ("gamma risk") than you think.</p>
+    <p><strong>For Risk Managers:</strong> Standard Value-at-Risk (VaR) models—a common method used to estimate potential losses—that assume volatility stays constant over time will systematically underestimate risk in earnings windows for META, AMZN, and NFLX. A simple fix: scale the usual volatility estimate by the observed rate (earnings volatility divided by normal volatility) for the relevant stock in the 5-day window around its earnings date. For NFLX, that ratio is 3.07 / 1.73 = 1.78—a 78% upward adjustment to the baseline volatility estimate during the five-day earnings window.</p>
+    <p><strong>For Investors Building Portfolios:</strong> Every name in this group shows a real earnings effect, but the magnitude matters for decisions about reducing risk (hedging). META and NFLX show the largest absolute gaps—earnings weeks are roughly twice as volatile as normal weeks. AAPL and GOOGL show more modest effects: significant in aggregate, but the difference is small enough (0.41 pp and 0.98 pp respectively) that the cost of hedging may exceed the incremental risk in many practical contexts.</p>
 
-    <h3 id="b9">Limitations and What's Next</h3>
-    <p><strong>Earnings timing noise:</strong> We use the scheduled announcement date, but many earnings are released after market close, meaning the actual price reaction occurs on the <em>next</em> trading day. This introduces a one-day lag that our 5-day window captures imperfectly. Future work could classify each announcement as pre-market or post-market and adjust the window accordingly.</p>
-    <p><strong>GARCH symmetry assumption:</strong> The GARCH(1,1) specification treats positive and negative shocks identically. In practice, negative earnings surprises tend to cause larger volatility spikes than equivalent positive surprises — the "leverage effect." Extensions like GJR-GARCH (which adds a term for negative-shock asymmetry) or EGARCH (which models log-variance) would capture this more accurately.</p>
-    <p><strong>Bayesian computational cost:</strong> Our Bayesian model runs on a 500-day NFLX subset. Extending this to all five tickers and the full 1,500-day period would require either variational inference (faster but approximate) or GPU-accelerated HMC sampling. This is tractable with current tools but was beyond the scope of this project.</p>
-    <p><strong>No economic measures:</strong> We measure volatility purely statistically. Future work could connect this to implied volatility (from options prices), which would allow direct comparison between the market's expectation of earnings volatility and the realized volatility we measure here. The gap between implied and realized is the core of earnings options trading strategies.</p>
+    <h3 id="b9">Limitations & Future Work</h3>
+    <p>While our results provide strong evidence of an earnings volatility effect, several limitations should be considered when interpreting these findings.</p>
+    <p><strong>Earnings Timing & Window Assumptions:</strong> We use the scheduled announcement date and a fixed 5-day window (3 days before, the announcement day, and 1 day after) for all companies. In reality, many earnings are released after market close, meaning the primary price reaction occurs on the <em>next</em> trading day. This introduces a potential one-day misalignment in our labeling. In addition, a fixed window may not fully capture how markets incorporate information, as some stocks begin moving earlier or react over longer periods. Together, these assumptions may blur the true timing of volatility and either overstate or understate the measured earnings effect. Future work could classify announcements as pre-market or post-market and allow for variable event windows.</p>
+    <p><strong>Model Assumptions & Volatility Dynamics:</strong> Our GARCH(1,1) model assumes a specific structure for how volatility evolves and treats positive and negative shocks symmetrically. In practice, negative earnings surprises often generate larger volatility spikes than positive ones (the "leverage effect"). As a result, the model may underestimate downside risk during earnings periods. Additionally, GARCH models assume relatively stable dynamics over time and may not fully capture structural breaks, such as the 2020 COVID crash or the 2022 tech selloff. More flexible models that allow for asymmetry or regime changes could improve accuracy.</p>
+    <p><strong>Bayesian Scope & Computational Constraints:</strong> The Bayesian model analysis was conducted on a 500-day subset of NFLX data rather than the full dataset or all five tickers. While this provides a detailed view of parameter uncertainty of a high-volatility stock, it limits how broadly these results can be generalized. Extending this Bayesian approach across all tickers and the full time period would provide a more complete picture, but requires significantly greater computational resources.</p>
+    <p><strong>Data Scope & Generalizability:</strong>Our analysis focuses on five large-cap technology companies. These firms are highly liquid, heavily followed by analysts, and subject to intense market attention, which may amplify earnings-related volatility. As a result, the findings may not generalize to smaller firms, less liquid stocks, or other sectors where information is incorporated differently.</p>
+    <p><strong>Lack of Market Expectation Measures:</strong> We measure volatility based on realized price movements, but do not directly incorporate market expectations. In practice, options prices reflect implied volatility—the market's expectation of future movement—while our analysis captures realized volatility—what actually occurs. Comparing these two would allow us to assess whether markets systematically overestimate or underestimate earnings volatility, which is central to many trading strategies.</p>
+    <p>Despite these limitations, the overall evidence consistently supports the conclusion that earnings announcements are associated with elevated volatility across these stocks.</p>
 
     <hr class="bhr">
-    <p style="font-family:var(--mono);font-size:10px;color:var(--t3);line-height:1.8"><strong style="color:var(--t2)">Data:</strong> Yahoo Finance via R quantmod &nbsp;·&nbsp; <strong style="color:var(--t2)">Stats:</strong> R (rugarch, moments, xts) &nbsp;·&nbsp; <strong style="color:var(--t2)">Bayesian:</strong> PyMC 5 (offline run, cached) &nbsp;·&nbsp; <strong style="color:var(--t2)">Period:</strong> Jan 2019 – Dec 2024 &nbsp;·&nbsp; <strong style="color:var(--t2)">Tickers:</strong> META AAPL AMZN NFLX GOOGL</p>
+    <p style="font-family:var(--mono);font-size:10px;color:var(--t3);line-height:1.8"><strong style="color:var(--t2)">Data & Methods:</strong> Yahoo Finance (R quantmod) · R (rugarch, moments, xts) · PyMC 5 (Bayesian, offline)&nbsp;·&nbsp;<strong style="color:var(--t2)">Period:</strong> Jan 2019 – Dec 2024&nbsp;·&nbsp;<strong style="color:var(--t2)">Tickers:</strong> META, AAPL, AMZN, NFLX, GOOGL
+    </p>
   </div>
 </div>
 </div>
@@ -380,37 +382,40 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <div class="wrap">
   <div class="hero">
     <div class="hero-tag">● Data101 · Final Project · April 2026</div>
-    <h1>Stock <em>Volatility</em><br>Around Earnings Announcements</h1>
-    <div class="hero-deck">A six-year statistical investigation into whether FAANG earnings announcements cause measurable, significant spikes in daily return volatility — using Welch's t-tests, GARCH(1,1) models via R's rugarch package, and a Bayesian extension using PyMC.</div>
+    <h1>Stock <em>Volatility</em> Around Earnings Announcements</h1>
+    <div class="hero-deck">A six-year statistical investigation into whether earnings announcements from major tech companies lead to measurable spikes in stock volatility. We analyze this using hypothesis testing, time-series volatility models (GARCH), and a Bayesian extension to better capture uncertainty.</div>
     <div class="pills">
       <span class="pill">Sonakshi Sharma</span><span class="pill">Sadhana Vasanthakumar</span>
       <span class="pill">Hemadharshinii Sendhilvel</span><span class="pill">Rayane Skiker</span>
     </div>
   </div>
-
+  <div class="sh"><span class="sh-n">01</span><span class="sh-t">Data Overview</span></div>
   <div class="metrics">
-    <div class="met"><div class="met-l">Stocks</div><div class="met-v">5</div><div class="met-s">FAANG tickers</div></div>
+    <div class="met"><div class="met-l">Stocks</div><div class="met-v">5</div><div class="met-s">FAANG Tickers</div></div>
     <div class="met"><div class="met-l">Period</div><div class="met-v" style="font-size:16px;padding-top:3px">6 yrs</div><div class="met-s">Jan 2019 – Dec 2024</div></div>
-    <div class="met"><div class="met-l">Trading days</div><div class="met-v" id="m-days">~1508</div><div class="met-s">per ticker</div></div>
-    <div class="met mg"><div class="met-l">H₀ rejected</div><div class="met-v" id="m-rej">5 / 5</div><div class="met-s">at α = 0.01</div></div>
+    <div class="met"><div class="met-l">Trading Days</div><div class="met-v" id="m-days">~1508</div><div class="met-s">per ticker</div></div>
+    <div class="met mg"><div class="met-l">H<sub>0</sub> rejected</div><div class="met-v" id="m-rej">5 / 5</div><div class="met-s">at α = 0.01</div></div>
     <div class="met mb"><div class="met-l">GARCH RMSE</div><div class="met-v">1.55<span style="font-size:13px">pp</span></div><div class="met-s">avg across tickers</div></div>
     <div class="met ma"><div class="met-l">Bayes coverage</div><div class="met-v">93<span style="font-size:13px">%</span></div><div class="met-s">vs 86% frequentist</div></div>
   </div>
 
   <div class="sh"><span class="sh-n">Research Question</span><span class="sh-t">What are we investigating?</span></div>
   <div class="callout info" style="margin-bottom:1.5rem">
-    <strong>Core question:</strong> Do quarterly earnings announcements cause a statistically significant increase in daily stock return volatility for the five largest US tech companies? We test this using three independent methods — classical hypothesis testing, time-series GARCH modelling, and Bayesian inference — on six years of daily price data (2019–2024).
+    <strong>Core Question:</strong> Do quarterly earnings announcements cause a statistically significant increase in daily stock return volatility for the five largest US tech companies?<br><br>We test this using three independent methods—classical hypothesis testing, time-series GARCH modeling, and Bayesian inference—on six years of daily price data (2019–2024).
   </div>
 
-  <div class="sh" style="margin-top:2rem"><span class="sh-n">Methods</span><span class="sh-t">Four analytical layers</span></div>
+  <p>Before testing our hypothesis, we first need to understand what "normal" stock behavior looks like. We collected six years of daily price data for five major technology companies and converted those prices into daily returns—the percentage change from one day to the next. These returns form the foundation of our analysis.</p>
+
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Methods</span><span class="sh-t">Our Analysis Proceeds in Four Steps:</span></div>
   <div class="method-grid">
-    <div class="method-card"><div class="method-card-num">Step 01</div><div class="method-card-t">Exploratory Analysis</div><div class="method-card-d">Summary statistics, normalised price charts, return distributions. Confirms fat tails and volatility clustering — motivating GARCH over OLS.</div></div>
-    <div class="method-card"><div class="method-card-num">Step 02</div><div class="method-card-t">Hypothesis Testing</div><div class="method-card-d">One-tailed Welch's t-test comparing |r_t| during earnings windows vs normal periods. α = 0.01. Tests independence of earnings-week volatility.</div></div>
-    <div class="method-card"><div class="method-card-num">Step 03</div><div class="method-card-t">GARCH(1,1) Model</div><div class="method-card-d">Fitted via R's rugarch (sGARCH spec, MLE). Captures volatility clustering and persistence. Rolling RMSE evaluation on 20-day forecasts.</div></div>
-    <div class="method-card"><div class="method-card-num">Step 04</div><div class="method-card-t">Bayesian Extension</div><div class="method-card-d">Bayesian GARCH on NFLX via PyMC NUTS (500 days, 800 draws, 2 chains). Full posterior distributions with HPD intervals — more honest uncertainty than frequentist point estimates.</div></div>
+    <div class="method-card"><div class="method-card-num">Step 01</div><div class="method-card-t">Exploratory Analysis</div><div class="method-card-d">Summary statistics, normalized price charts, and return distributions. This step reveals fat tails and volatility clustering—key patterns that motivate more advanced models.</div></div>
+    <div class="method-card"><div class="method-card-num">Step 02</div><div class="method-card-t">Hypothesis Testing</div><div class="method-card-d">A one-tailed Welch's t-test compares daily volatility (|r<sub>t</sub>|) during earnings windows vs. normal periods (α = 0.01). This tests whether earnings periods are statistically more volatile.</div></div>
+    <div class="method-card"><div class="method-card-num">Step 03</div><div class="method-card-t">GARCH(1,1) Model</div><div class="method-card-d">Fitted using R's rugarch package. This model captures time-varying volatility and persistence—how shocks today affect risk tomorrow.</div></div>
+    <div class="method-card"><div class="method-card-num">Step 04</div><div class="method-card-t">Bayesian Extension</div><div class="method-card-d">A Bayesian version of the GARCH model (applied to NFLX) estimates full distributions of parameters rather than single values, providing a more realistic measure of uncertainty.</div></div>
   </div>
 
-  <div class="sh" style="margin-top:2rem"><span class="sh-n">Data</span><span class="sh-t">Summary statistics · daily log returns 2019–2024</span></div>
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Data</span><span class="sh-t">Summary Statistics · Daily Log Returns 2019–2024</span></div>
+  <p>The table below summarizes the distribution of daily returns for each stock. These statistics help us understand how typical daily movements behave—and how often extreme moves occur.<br><br></p>
   <div class="g2" style="margin-bottom:1.5rem">
     <div class="card">
       <div class="card-t">Return statistics per ticker</div>
@@ -427,13 +432,16 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
       <div class="chart-src"><strong>Source:</strong> R · <code>quantmod::getSymbols()</code> → <code>Ad()</code> → <code>diff(log(.))</code> · <code>moments::skewness()</code> / <code>kurtosis() − 3</code></div>
     </div>
     <div class="card">
-      <div class="card-t">Daily std dev (%)</div>
+      <div class="card-t">Daily Standard Deviation (%)</div>
       <div class="cw h200" id="std-wrap"><canvas id="stdChart" role="img" aria-label="Bar chart of std devs">STD devs.</canvas></div>
       <div class="chart-src"><strong>Source:</strong> R · <code>apply(log_returns * 100, 2, sd)</code> — static from paper values</div>
     </div>
   </div>
-  <div class="callout warn">All five series show <strong>negative skewness</strong> (more extreme downward moves than up) and <strong>excess kurtosis</strong> (fat tails — especially NFLX at 41.4 and META at 24.3). Both confirm that a normal distribution is a poor fit. This is the core empirical motivation for GARCH.</div>
-  <div class="callout info" style="margin-top:.75rem"><strong>Correlations:</strong> The five tickers are moderately correlated (META–GOOGL 0.63, META–AMZN 0.61, AAPL–GOOGL 0.60). This means market-wide shocks — like the 2022 rate-hike selloff — affect all of them simultaneously. Earnings volatility effects measured here are therefore a <em>lower bound</em>: some of what looks like "normal" background volatility is itself driven by macro events that cluster these stocks together.</div>
+  <div class="callout warn">Two patterns stand out immediately.<br><br><strong>First, all five series show negative skewness</strong>. This means that large downward moves tend to be more extreme than upward ones. In simple terms: bad days are often worse than good days are good.<br><strong>Second, all five exhibit excess kurtosis—also known as "fat tails".</strong> This means extreme price movements occur more frequently than a normal distribution would predict. NFLX (41.4) and META (24.3) are particularly extreme, driven by large single-day drops during earnings-related shocks.<br>
+  <br>Together, these findings show that stock returns are not well described by a normal distribution.<br><br>This matters because many standard statistical models assume constant volatility and normally distributed returns. Our data violates both assumptions—providing a strong motivation for using GARCH models, which are designed to handle time-varying. volatility and extreme events.
+  </div>
+  <div class="callout info" style="margin-top:.75rem"><strong>Correlations:</strong> The five stocks are moderately correlated (e.g., META–GOOGL at 0.63, META–AMZN at 0.61, AAPL–GOOGL at 0.60). This reflects shared exposure to broader market forces such as interest rate changes or macroeconomic shocks.<br><br>As a result, some of what we classify as "normal" volatility is driven by these shared events. This means our estimate of the earnings effect is likely conservative: earnings-driven volatility is layered on top of an already interconnected and reactive market.</div>
+  <p>Finally, we visualize how these stocks evolved over time to provide context for the statistical results.</p>
 
   <div class="card" style="margin-top:1.5rem">
     <div class="card-t">Normalised closing prices · base = 100 · January 2019</div>
@@ -447,24 +455,29 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <!-- hypothesis   -->
 <div class="panel" id="panel-hypothesis">
 <div class="wrap">
+  <div class="sh"><span class="sh-n">02</span><span class="sh-t">Hypothesis Testing</span></div>
   <div class="hyp-block">
     <h3>What Are We Testing?</h3>
-    <p style="font-size:12px;color:var(--t1);margin-bottom:1rem;line-height:1.75">We want to know whether stock prices move more — are more volatile — in the week around an earnings announcement versus a typical week. We measure volatility using the <strong>absolute daily log return</strong>, written |r_t|. A large |r_t| means the stock moved a lot that day (in either direction).</p>
+    <p style="font-size:12px;color:var(--t1);margin-bottom:1rem;line-height:1.75">We want to know whether stock prices move more (i.e., are more volatile) during the week around an earnings announcement compared to a typical trading week. We measure volatility using the <strong>absolute daily log return</strong>, written as |r<sub>t</sub>|. A large |r<sub>t</sub>| value means the stock moved a lot that day (in either direction).<br><br>We formalize the question using statistical hypothesis testing:</p>
     <div style="margin-bottom:1rem">
-      <span class="eq-main">H₀ (null): μ(|r_t| earnings weeks) = μ(|r_t| normal weeks)</span>
-      <div class="eq-exp">The null hypothesis says earnings weeks are no different — the average absolute return during the 5-day earnings window equals the average absolute return on all other days. We assume this is true unless the data gives us strong evidence otherwise.</div>
+      <span class="eq-main">Null Hypothesis, H<sub>0</sub>: μ(|r<sub>t</sub>| earnings weeks) = μ(|r<sub>t</sub>| normal weeks)</span>
+      <div class="eq-exp">The null hypothesis says that the average volatility is the same during earnings weeks (the 5-day earnings window) and normal weeks. We assume this is true unless the data gives us strong evidence otherwise.</div>
     </div>
     <div style="margin-bottom:1rem">
-      <span class="eq-main">H₁ (alternative): μ(|r_t| earnings weeks) > μ(|r_t| normal weeks)</span>
-      <div class="eq-exp">The alternative says earnings weeks are more volatile — we expect higher average absolute returns. This is one-tailed because we only care about the direction: more volatile, not less.</div>
+      <span class="eq-main">Alternative Hypothesis, H<sub>1</sub>: μ(|r<sub>t</sub>| earnings weeks) > μ(|r<sub>t</sub>| normal weeks)</span>
+      <div class="eq-exp">The alternative hypothesis says that the average volatility is higher during earnings weeks. We performed a one-tailed test because we are only interested in increases in volatility, not decreases.</div>
     </div>
     <div style="margin-bottom:1rem">
-      <span class="eq-main">Welch's t-test: t = (x̄₁ − x̄₂) / √(s₁²/n₁ + s₂²/n₂)</span>
-      <div class="eq-exp">We use Welch's t-test (not Student's) because the two groups have unequal variance — earnings days are inherently more spread out. Welch's adjusts the degrees of freedom to compensate. x̄₁ = mean earnings vol, x̄₂ = mean normal vol, s² = variance, n = sample size.</div>
+      <span class="eq-main">Welch's t-test: \[
+      t = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}
+      \]
+      Where: \(\bar{x}_1\) = mean volatility during earnings weeks, \(\bar{x}_2\) = mean volatility during normal weeks, \(s^2\) = variance, \(n\) = number of observations
+      </span>
+      <div class="eq-exp">To compare the two groups, we use Welch's t-test, which is designed for situations where the two groups may have different variances. Earnings days are inherently more spread out than normal days, and Welch's t-test adjusts the degrees of freedom to compensate.</div>
     </div>
     <div>
-      <span class="eq-main">Significance: α = 0.01 → reject H₀ when p-value < 0.01</span>
-      <div class="eq-exp">We require a 1% significance level — stricter than the conventional 5% — because financial data is noisy and we want to be conservative. A p-value of 0.002 means: if H₀ were true, we'd see data this extreme only 0.2% of the time. That is strong evidence to reject H₀. A p-value of 0.089 means: we'd see this 8.9% of the time even if there were no earnings effect — not convincing enough.</div>
+      <span class="eq-main">Significance Threshold: α = 0.01 (reject H<sub>0</sub> when p-value < 0.01)</span>
+      <div class="eq-exp">We use a stricter threshold than usual. This means we only reject the null hypothesis if there is less than a 1% chance that the result occurred randomly.<br><br>A p-value of 0.002 means: if H<sub>0</sub> were true, we'd see data this extreme only 0.2% of the time. That is strong evidence to reject H₀. A p-value of 0.089 means: we'd see data this extreme 8.9% of the time even if there were no earnings effect, which is not convincing enough to reject H<sub>0</sub>.</div>
     </div>
     <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);font-size:11px;color:var(--t2)">
       <strong style="color:var(--t1)">R code:</strong> <code>t.test(earn_vol, normal_vol, alternative="greater", var.equal=FALSE)</code> — run separately for each of the 5 tickers. Returns t-statistic, degrees of freedom (Welch's adjusted), and one-tailed p-value.
@@ -500,8 +513,8 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     </tbody>
   </table></div>
   <div class="callout">
-    <strong>Interpretation:</strong> All five tickers reject H₀ at α = 0.01 — a stronger result than our initial hypothesis. AMZN produced the sharpest t-statistic (5.11, p &lt; 0.00001), with a delta of +1.29 pp between earnings and normal volatility. AAPL, the weakest result, still clears the bar clearly (p = 0.006). The pattern is consistent: these stocks are measurably more volatile around earnings dates, not just noisier.
-    <br><br><strong>Note on independence:</strong> Welch's t-test assumes observations are independent. Volatility is autocorrelated — big moves cluster — so the effective sample size is smaller than n=120/1388. The GARCH tab addresses this properly by modelling the autocorrelation structure explicitly. The t-test results should be read as a directional signal, confirmed (not replaced) by GARCH.
+    <strong>Interpretation:</strong> All five stocks reject the null hypothesis at the 1% level. This means earnings weeks are statistically more volatile than normal trading weeks across every company in the dataset. The strongest effect appears in AMZN (t = 5.11, p &lt; 0.00001), while AAPL shows the smallest but still significant effect (p = 0.006). Overall, the pattern is consistent: earnings announcements are associated with higher short-term volatility.
+    <br><br><strong>Note on Independence:</strong> One limitation is that Welch's t-test assumes observations are independent. In financial markets, this is not strictly true—large movements tend to cluster over time. This means the effective sample size is smaller than it appears. The GARCH model in the next section explicitly accounts for this time-dependence.
   </div>
 </div>
 </div>
@@ -511,15 +524,21 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <div class="wrap">
   <div class="sh"><span class="sh-n">03</span><span class="sh-t">GARCH(1,1) Model</span><span class="sh-d">R · rugarch · sGARCH · MLE</span></div>
   <div class="callout info" style="margin-bottom:1.5rem">
-    <strong>Why GARCH?</strong> The t-test ignores the fact that volatility is autocorrelated — a big move today predicts a big move tomorrow. GARCH(1,1) explicitly models this "volatility clustering" by tracking a time-varying conditional variance σ²_t that depends on past returns and past variance estimates. It is the standard model for daily financial return volatility.
+    <strong>Why GARCH?</strong> The t-test tells us whether earnings weeks are more volatile on average. But it ignores something crucial: volatility is not independent over time.<br><br>In financial markets, large movements tend to cluster: a big move today predicts a big move tomorrow and quiet periods also tend to persist. This phenomenon is called volatility clustering. To model this, we use GARCH(1,1) which allows volatility to change over time instead of assuming it is constant.
   </div>
   <div class="formula">
-    r_t = μ + ε_t &nbsp;&nbsp;&nbsp; ε_t = σ_t · z_t &nbsp;&nbsp;&nbsp; z_t ~ N(0,1)<br>
-    σ²_t = ω &nbsp;+&nbsp; α · ε²_{t−1} &nbsp;+&nbsp; β · σ²_{t−1}<br><br>
-    ω = long-run variance baseline (intercept)<br>
-    α = ARCH term: how much does yesterday's squared shock increase today's variance? (news impact)<br>
-    β = GARCH term: how much does yesterday's variance forecast carry into today? (persistence/memory)<br>
-    α + β = total persistence — the closer to 1, the slower volatility reverts to baseline
+    <srong>Model Intuition</srong><br>
+    We decompose returns into two parts:
+
+    \[r_t = \mu + \varepsilon_t\]
+    \[\varepsilon_t = \sigma_t z_t, \quad z_t \sim \mathcal{N}(0,1)\]
+    \[\sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2\]
+
+    ω (omega) = long-run average level of volatility<br>
+    α (alpha)= ARCH term: how strongly new shocks affect volatility (news sensitivity)<br>
+    β (beta)= GARCH term: how much past volatility carries into the future (memory)<br><br>
+
+    The most important quantity is: <strong>α + β</strong> which measures volatility persistence. A value closer to 1 indicates that shocks last a long time, while lower values indicate that there's a faster return to normal.
   </div>
 
   <div class="g2" style="margin:1.25rem 0">
@@ -556,15 +575,16 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
       <div class="card-t">Rolling forecast RMSE · 1000-day train · 20-day horizon</div>
       <div class="cw h180" id="rmse-wrap"><canvas id="rmseChart" role="img" aria-label="RMSE chart">RMSE.</canvas></div>
       <div class="chart-src"><strong>Source:</strong> R · <code>ugarchforecast(fit, n.ahead=20)</code> → <code>sigma(fc)</code> vs <code>abs(test_returns)</code>. RMSE averaged over 10 rolling windows per ticker.</div>
+      <p><br>RMSE (Root Mean Square Error) measures how far the model's volatility forecasts are from actual observed volatility on average. Lower values indicate better predictive accuracy.<br><br>While exact daily volatility is difficult to predict, the model consistently captures the overall level and changes in volatility across time.</p>
     </div>
     <div class="card">
       <div class="card-t">Key findings</div>
       <ul style="font-size:12px;color:var(--t1);list-style:none;line-height:2.2">
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ All α + β > 0.92: strong volatility persistence</li>
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ AMZN α = 0.170: sharpest reaction to new shocks</li>
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ NFLX β = 0.974: slowest mean reversion (α+β = 0.993)</li>
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ GOOGL α+β = 0.923: fastest reversion to baseline</li>
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ RMSE 1.1–2.2 pp: forecasts rough but directionally useful</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ All five tickers have α + β > 0.92, meaning volatility shocks decay slowly and tend to persist over time</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ NFLX (α+β = 0.993) shows the slowest volatility decay, with shocks lasting the longest</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ GOOGL (α+β = 0.923) returns to baseline more quickly than the other stocks</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ AMZN has the highest α (0.170), meaning volatility is most sensitive to fresh shocks</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ RMSE (1.1–2.2 pp) shows volatility is hard to predict precisely, but the model captures overall structure well</li>
         <li style="padding:.2rem 0">→ Earnings shocks decay over weeks, not days</li>
       </ul>
     </div>
@@ -575,9 +595,9 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <!-- bayesian  -->
 <div class="panel" id="panel-bayesian">
 <div class="wrap">
-  <div class="sh"><span class="sh-n">04</span><span class="sh-t">Bayesian GARCH Extension</span><span class="sh-d">Bayesian GARCH · NFLX · 500 days · offline PyMC run</span></div>
+  <div class="sh"><span class="sh-n">04</span><span class="sh-t">Bayesian GARCH Extension</span><span class="sh-d">Bayesian GARCH · NFLX · 500 Days · Offline PyMC Run</span></div>
   <div class="callout info">
-    <strong>Why go Bayesian?</strong> Frequentist MLE gives you one number for each parameter (e.g., α = 0.108). But that number has uncertainty — a different 500-day window would give a slightly different answer. Bayesian inference gives you a <em>probability distribution</em> over each parameter, quantifying exactly how uncertain you should be. This propagates into wider, more honest prediction intervals.
+    <strong>Why go Bayesian?</strong> Standard (frequentist) GARCH gives a single best estimate for each parameter (e.g., α = 0.108). But this ignores an important fact: those parameters are uncertain.<br><br>If we repeated the analysis on a different sample of data, we would get slightly different values. Bayesian inference solves this by estimating a <em>distribution over parameters</em>, not a single value. This allows us to quantify uncertainty directly, produce more realistic prediction intervals, and improve risk estimates in volatile periods.
   </div>
   <div class="g3" style="margin:1.25rem 0">
     <div class="card">
@@ -639,14 +659,13 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
                target_accept=<span class="nu">0.9</span>)</pre>
     </div>
     <div class="card">
-      <div class="card-t">Why Bayesian outperforms frequentist</div>
+      <div class="card-t">Why Bayesian Works Better</div>
       <ul style="font-size:12px;color:var(--t1);list-style:none;line-height:2.2">
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Full posterior distributions, not point estimates</li>
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Prediction intervals are genuinely probabilistic</li>
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Beta(5,2) prior encodes "high persistence" knowledge</li>
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ <strong>93% vs 86%</strong> out-of-sample coverage</li>
-        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Honest uncertainty for risk management</li>
-        <li style="padding:.2rem 0">→ HPD intervals are narrower than CI — more precise</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Posterior estimates confirm strong volatility persistence (α + β = 0.986)</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Narrow HPD intervals (Highest Posterior Density intervals—Bayesian uncertainty ranges)  indicate parameters are well-identified (low estimation uncertainty)</li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Bayesian model improves prediction interval coverage <strong>(93% vs 86%)</strong></li>
+        <li style="border-bottom:1px solid var(--border);padding:.2rem 0">→ Incorporating parameter uncertainty produces wider and more realistic predictive intervals</li>
+        <li style="padding:.2rem 0">→ Volatility dynamics are dominated by persistence (β) rather than new shocks (α)</li>
       </ul>
     </div>
   </div>
@@ -656,18 +675,18 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <!-- r console  -->
 <div class="panel" id="panel-rconsole">
 <div class="wrap">
-  <div class="sh"><span class="sh-n">05</span><span class="sh-t">R Console</span><span class="sh-d">WebR · R in the browser via WebAssembly</span></div>
+  <div class="sh"><span class="sh-n">05</span><span class="sh-t">R Console</span><span class="sh-d">WebR · R in Browser via WebAssembly</span></div>
   <div class="callout info" style="margin-bottom:1.5rem">
-    <strong>Real R in your browser.</strong> This console runs actual R code via <a href="https://webr.r-wasm.org" style="color:var(--blue)">WebR</a> — R compiled to WebAssembly. No local R installation needed. It takes ~15 seconds to initialize on first load. Base R and several packages are available. Use the snippet buttons below to load example code from this project.
+    <strong>Overview.</strong> This is a live R console running directly in the browser using WebR (R compiled to WebAssembly). No installation is required, and all computations run locally in your browser. The console initializes in ~10-15 seconds on first load. It is designed to let users interactively explore the statistical methods used in this project. Use the buttons below to load example code segments from our project.
   </div>
 
   <div class="snippet-btns">
     <button class="snip-btn" onclick="loadSnippet('summary')">Summary Stats</button>
     <button class="snip-btn" onclick="loadSnippet('returns')">Log Returns</button>
-    <button class="snip-btn" onclick="loadSnippet('ttest')">t-test Demo</button>
-    <button class="snip-btn" onclick="loadSnippet('garch')">GARCH Fit</button>
-    <button class="snip-btn" onclick="loadSnippet('persist')">α+β Persistence</button>
-    <button class="snip-btn" onclick="loadSnippet('earnings')">Earnings Mask</button>
+    <button class="snip-btn" onclick="loadSnippet('ttest')">Welch's t-test</button>
+    <button class="snip-btn" onclick="loadSnippet('garch')">GARCH Model</button>
+    <button class="snip-btn" onclick="loadSnippet('persist')">Volatility Persistence (α+β)</button>
+    <button class="snip-btn" onclick="loadSnippet('earnings')">Earnings Window Masking</button>
   </div>
 
   <div class="rconsole">
@@ -682,6 +701,8 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     </div>
     <div id="rOutput"><span style="color:var(--t3)">Output will appear here after running code…</span></div>
   </div>
+  <p><br><em>This console demonstrates how hypothesis testing is performed in R, how earnings vs. normal volatility is statistically compared, and how the methods described in the blog are implemented in code.</em></p>
+  <p><em>It exists to bridge the gap between theoretical explanation and actual statistical implementation.</em></p>
 
   <div style="margin-top:1.5rem" class="g2">
     <div class="card">
@@ -697,11 +718,12 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     <div class="card">
       <div class="card-t">Notes on WebR</div>
       <ul style="font-size:11px;color:var(--t1);list-style:none;line-height:2.1">
-        <li>→ Cannot access internet (no yfinance/Yahoo)</li>
-        <li>→ rugarch not available (compute heavy)</li>
-        <li>→ Use embedded data from snippets above</li>
-        <li>→ Graphics output not shown (text only)</li>
-        <li>→ Runs entirely in your browser — private</li>
+        This environment runs fully in the browser and has constraints:
+        <li>→ No internet access (cannot fetch Yahoo Finance data)</li>
+        <li>→ No heavy packages (e.g. rugarch not available)</li>
+        <li>→ No graphical output (text-only)</li>
+        <li>→ Uses preloaded or simulated data for demonstrations</li>
+        Despite this, it accurately demonstrates the statistical workflow used in the full analysis pipeline. 
       </ul>
     </div>
   </div>
@@ -711,7 +733,7 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <!-- code  -->
 <div class="panel" id="panel-code">
 <div class="wrap">
-  <div class="sh"><span class="sh-n">06</span><span class="sh-t">How to Run This Project</span><span class="sh-d">Setup · Files · Local machine · GitHub Pages</span></div>
+  <div class="sh"><span class="sh-n">06</span><span class="sh-t">How to Run This Project</span><span class="sh-d">Setup · Files · Local Execution · Deployment</span></div>
 
   <!-- what's in the repo -->
   <div class="hyp-block" style="margin-bottom:1.5rem">
@@ -719,31 +741,31 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     <div style="display:grid;gap:.6rem;margin-top:.5rem">
 
       <div style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1.25rem;align-items:start;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
-        <div><code style="color:var(--green);font-size:12px">analysis.R</code><div style="font-size:10px;color:var(--t3);margin-top:3px">R · ~350 lines</div></div>
-        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">The entire statistical analysis.</strong> Downloads six years of daily prices from Yahoo Finance, computes log returns, labels earnings windows, runs Welch's t-tests, fits GARCH(1,1) models, evaluates rolling forecast accuracy, and writes everything to <code>outputs/results.json</code>. This is the only file that does any real computation. Run it once and leave it — results are cached.</div>
+        <div><code style="color:var(--green);font-size:12px">analysis.R</code><div style="font-size:10px;color:var(--t3);margin-top:3px">R · ~350 Lines · Core Computation Engine</div></div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">The Entire Statistical Analysis.</strong> This script runs the full statistical pipeline. It downloads six years of daily stock data from Yahoo Finance, computes log returns, and labels earnings windows for each ticker. It then runs Welch's t-tests to compare volatility during earnings and non-earnings periods, fits GARCH(1,1) models to capture time-varying volatility, and evaluates rolling forecast accuracy using RMSE. Finally, it writes all processed outputs into <code>outputs/results.json</code>, which is used by the website. This is the only file that performs the full computation; once run, results are cached and reused.</div>
       </div>
 
       <div style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1.25rem;align-items:start;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
         <div><code style="color:var(--blue);font-size:12px">index.html</code><div style="font-size:10px;color:var(--t3);margin-top:3px">HTML · self-contained</div></div>
-        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">The entire website — this page.</strong> All charts, tables, the blog, and the R console live in this one file. It has the real analysis results baked in as fallback data, so it works even with no server running. When it can find <code>outputs/results.json</code>, it loads that instead for the live computed values.</div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">The Entire Website.</strong> This file contains the entire project interface, including the blog, all charts and visualizations, tables, and the embedded R console powered by WebR. It reads outputs from <code>outputs/results.json</code> to populate all results dynamically, but also includes fallback embedded values so the site still works offline without any backend. In effect, this file is the full user-facing application.</div>
       </div>
 
       <div style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1.25rem;align-items:start;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
         <div><code style="color:var(--amber);font-size:12px">outputs/results.json</code><div style="font-size:10px;color:var(--t3);margin-top:3px">JSON · ~40 KB</div></div>
-        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">The pre-computed output from analysis.R.</strong> Contains all hypothesis test results, GARCH parameters, rolling volatility series, RMSE values, correlation matrices, and normalized prices. The website reads this file to populate every chart and table. You can re-generate it at any time by re-running <code>analysis.R</code>.</div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">Pre-Computed Results from analysis.R.</strong> This file stores all processed outputs generated by <code>analysis.R</code>. It includes hypothesis test results, GARCH parameters, volatility time series, RMSE values, correlation matrices, and normalized price data. The website reads this file to populate all charts and tables, making it the central data source for the entire project interface.</div>
       </div>
 
       <div style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1.25rem;align-items:start;padding:.75rem;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
         <div><code style="color:var(--t2);font-size:12px">app.py</code><div style="font-size:10px;color:var(--t3);margin-top:3px">Python · optional</div></div>
-        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">A lightweight web server — optional.</strong> Serves <code>index.html</code> locally and exposes an endpoint that re-runs <code>analysis.R</code> on demand. You only need this if you want to re-run the R analysis from the browser using the ⟳ button. The site works perfectly without it.</div>
+        <div style="font-size:12px;color:var(--t1);line-height:1.7"><strong style="color:var(--t0)">Lightweight Web Server—Optional.</strong> This is a lightweight optional backend used for local development. It serves the website and can re-run the R analysis script on demand through the browser interface. This allows users to recompute results dynamically if desired, but it is not required for viewing the project, which works fully as a static site.</div>
       </div>
     </div>
   </div>
 
   <!-- option A: just open the file -->
-  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option A</span><span class="sh-t">Simplest — just open the file</span><span class="sh-d">No installation · works offline</span></div>
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option A</span><span class="sh-t">Simplest</span><span class="sh-d">No Installation Required · Works Offline</span></div>
   <div class="callout" style="margin-bottom:.75rem">
-    Download <strong>index.html</strong> and <strong>outputs/results.json</strong> (keep them in the same folder structure). Then just double-click <code>index.html</code>. The site will open in your browser with all charts and data already loaded from the embedded static values.
+    Download <strong>index.html</strong> and <strong>outputs/results.json</strong> and keep them in the same folder. Then open <code>index.html</code> directly in a browser. The site will load with all charts and results already populated from the precomputed data.
   </div>
   <pre><span class="cm"># Full folder structure:</span>
 your-folder/
@@ -752,11 +774,11 @@ your-folder/
 ├── app.py            <span class="cm"># Flask server (optional)</span>
 └── outputs/
     └── results.json  <span class="cm"># pre-computed output</span></pre>
-  <div class="callout warn" style="margin-top:.75rem">If the charts show placeholder data instead of real numbers, your browser is blocking the local JSON fetch (a security restriction). Use Option B instead — it takes 30 seconds to set up.</div>
+  <div class="callout warn" style="margin-top:.75rem">If the charts show placeholder data instead of real numbers, your browser is blocking local file access to JSON (a security restriction). In that case, use Option B.</div>
 
   <!-- option B: python static server -->
-  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option B</span><span class="sh-t">Python static server</span><span class="sh-d">Python 3 only · no R needed · ~30 seconds to start</span></div>
-  <div class="callout info" style="margin-bottom:.75rem">Python ships with a built-in web server. This fixes the browser security issue from Option A and gives you the exact same experience as the live GitHub Pages site — no Flask, no R installation required.</div>
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option B</span><span class="sh-t">Python Static Server</span><span class="sh-d">Python 3 Only · No R Needed · ~30 Seconds to Start</span></div>
+  <div class="callout info" style="margin-bottom:.75rem">This method avoids browser security restrictions and provides the same experience as the live site. Python includes a built-in server, so no additional packages are required.</div>
   <pre><span class="cm"># 1. Open Terminal (Mac/Linux) or Command Prompt (Windows)</span>
 
 <span class="cm"># 2. Navigate to the folder containing index.html</span>
@@ -771,9 +793,11 @@ python3 -m http.server 8000
 
 <span class="cm"># Press Ctrl+C in Terminal to stop the server when done.</span></pre>
 
+  <div class="callout info" style="margin-bottom:.75rem">The site will load with full data exactly as intended.</div>
+ 
   <!-- option C: flask + R (full stack) -->
-  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option C</span><span class="sh-t">Flask + R — full local stack</span><span class="sh-d">Run new analysis · re-download live prices</span></div>
-  <div class="callout info" style="margin-bottom:.75rem">Use this if you want to re-run the R analysis yourself — for example to extend the date range, add a new ticker, or verify results on fresh data from Yahoo Finance.</div>
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Option C</span><span class="sh-t">Flask + R — Full Pipeline</span><span class="sh-d">Run New Analysis · Re-Download Live Prices</span></div>
+  <div class="callout info" style="margin-bottom:.75rem">This option re-runs the full statistical pipeline and regenerates all results from raw data. It is useful if you want to extend the date range, add new tickers, or verify results on fresh Yahoo Finance data.</div>
 
   <div class="g2" style="margin-bottom:1rem">
     <div>
@@ -820,9 +844,9 @@ python app.py
   </div>
 
   <!-- updating the analysis -->
-  <div class="sh" style="margin-top:2rem"><span class="sh-n">Updating</span><span class="sh-t">Re-running the analysis</span><span class="sh-d">When to re-run · what changes</span></div>
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Updating</span><span class="sh-t">Re-Running the Analysis</span><span class="sh-d">When to Re-Run · What Changes</span></div>
   <div class="callout" style="margin-bottom:.75rem">
-    The <code>results.json</code> in the repo was generated in April 2026 covering Jan 2019 – Dec 2024. If you want fresher data — for example to include 2025 earnings — edit the <code>END_DATE</code> variable at the top of <code>analysis.R</code> and re-run it.
+    The <code>results.json</code> in the repo was generated in April 2026 covering Jan 2019–Dec 2024. If you want fresher data—for example to include 2025 earnings—edit the <code>END_DATE</code> variable at the top of <code>analysis.R</code> and re-run it.
   </div>
   <pre><span class="cm"># In analysis.R, line ~5 — change the date range:</span>
 START_DATE <span class="kw">&lt;-</span> <span class="st">"2019-01-01"</span>
@@ -834,12 +858,12 @@ Rscript analysis.R
 <span class="cm"># A new outputs/results.json is created.</span>
 <span class="cm"># The website auto-loads it on next page visit.</span>
 <span class="cm"># To publish: push the new results.json to GitHub.</span></pre>
-  <div class="callout warn" style="margin-top:.75rem">If you add new tickers, also add their quarterly earnings dates to the <code>earnings_dates</code> list in <code>analysis.R</code>. The analysis uses manually curated dates — it cannot infer them automatically.</div>
+  <div class="callout warn" style="margin-top:.75rem">If you add new tickers, also add their quarterly earnings dates to the <code>earnings_dates</code> list in <code>analysis.R</code>. The analysis uses manually curated dates—it cannot infer them automatically.</div>
 
   <!-- github pages deploy -->
-  <div class="sh" style="margin-top:2rem"><span class="sh-n">Deploy</span><span class="sh-t">Publishing to GitHub Pages</span><span class="sh-d">Free · no server · public URL</span></div>
+  <div class="sh" style="margin-top:2rem"><span class="sh-n">Deploy</span><span class="sh-t">Publishing to GitHub Pages</span><span class="sh-d">Free · No Server · Public URL</span></div>
   <div class="callout info" style="margin-bottom:.75rem">
-    GitHub Pages serves the site as a static website — no Python, no Flask, no R running anywhere. Two files are all you need: <code>index.html</code> and <code>outputs/results.json</code>.
+    GitHub Pages hosts the project as a static site—no backend required.
   </div>
 
   <div style="display:grid;gap:.6rem;margin-bottom:1.5rem">
