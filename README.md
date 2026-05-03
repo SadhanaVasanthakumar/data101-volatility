@@ -1,5 +1,5 @@
 # Earnings Volatility Analytics
-**Data 101 Final Project · Rutgers University**
+**Data 101 Final Project · Rutgers University · Sonakshi Sharma, Sadhana Vasanthakumar, Hemadharshinii Sendhilvel, Rayane Skiker**
 
 Does earnings season make stocks more volatile? We test this question across five major tech stocks — META, AAPL, AMZN, NFLX, and GOOGL — using six years of daily price data (2019–2024).
 
@@ -118,6 +118,6 @@ Earnings-driven volatility has real consequences: retail investors face outsized
 
 ---
 
-## Authors
+## Authors - Sonakshi Sharma, Sadhana Vasanthakumar, Hemadharshinii Sendhilvel, Rayane Skiker
 
 Built for Data 101, Rutgers University. See the live report at the website above.
