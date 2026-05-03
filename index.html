@@ -257,6 +257,18 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     <span>Data 101 · Spring 2026 · ~14 min read</span>
   </div>
 
+  <!-- Plain-English Quick Summary -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:var(--rl);padding:1.25rem 1.5rem;margin-bottom:2rem">
+    <div style="font-size:9px;color:var(--green);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.85rem;font-weight:600">⬡ The short version — what we found</div>
+    <div style="display:grid;gap:.55rem">
+      <div style="display:flex;gap:.8rem;align-items:flex-start;font-size:13px;color:var(--t1);line-height:1.6"><span style="color:var(--green);font-size:11px;flex-shrink:0;padding-top:2px">✓</span><span><strong style="color:var(--t0)">All 5 stocks move significantly more during earnings week.</strong> This held up across every company — Meta, Apple, Amazon, Netflix, and Google — with no exceptions.</span></div>
+      <div style="display:flex;gap:.8rem;align-items:flex-start;font-size:13px;color:var(--t1);line-height:1.6"><span style="color:var(--green);font-size:11px;flex-shrink:0;padding-top:2px">✓</span><span><strong style="color:var(--t0)">The effect is large, not subtle.</strong> On average, daily price swings during earnings week are 70–97% bigger than on normal trading days. That's not a rounding error.</span></div>
+      <div style="display:flex;gap:.8rem;align-items:flex-start;font-size:13px;color:var(--t1);line-height:1.6"><span style="color:var(--green);font-size:11px;flex-shrink:0;padding-top:2px">✓</span><span><strong style="color:var(--t0)">Meta and Netflix show the biggest jumps.</strong> Their earnings-week volatility is roughly double their normal levels. Apple's effect is real but smaller — its results are the most "priced in" by the market.</span></div>
+      <div style="display:flex;gap:.8rem;align-items:flex-start;font-size:13px;color:var(--t1);line-height:1.6"><span style="color:var(--green);font-size:11px;flex-shrink:0;padding-top:2px">✓</span><span><strong style="color:var(--t0)">Once volatility spikes, it stays elevated for weeks.</strong> Our GARCH model shows that after an earnings shock, it takes many weeks — not days — for volatility to return to its normal level.</span></div>
+      <div style="display:flex;gap:.8rem;align-items:flex-start;font-size:13px;color:var(--t1);line-height:1.6"><span style="color:var(--green);font-size:11px;flex-shrink:0;padding-top:2px">✓</span><span><strong style="color:var(--t0)">Three independent methods all agree.</strong> We used a classical stats test, a time-series model, and a Bayesian model. They all point to the same conclusion.</span></div>
+    </div>
+  </div>
+
   <div class="toc">
     <div class="toc-h">Contents</div>
     <ol>
@@ -277,6 +289,7 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 
     <h3 id="b0">Why This Question Matters</h3>
     <p>Every quarter, Meta (META), Apple (AAPL), Amazon (AMZN), Netflix (NFLX), and Alphabet (GOOGL) publish their earnings results, which contain the company's financial performance for the period. In the hours before and after each release, these stocks move in ways that traders treat as predictable. Option prices on these names routinely spike before earnings time because they reflect the market's expectation of how much the stock will move. But is that expectation backed up by the actual data?</p>
+    <div class="callout" style="margin:.9rem 0"><strong>A simple analogy:</strong> Imagine a student waiting to find out if they passed a major exam. In the hours before and right after the result, they'd be anxious, reactive, checking their phone constantly. Stocks behave the same way around earnings announcements — prices jump around more than usual because investors are uncertain and reacting quickly to any new information. We wanted to measure exactly how much more jittery these stocks get, and whether that jitteriness is statistically real.</div>
     <p>We wanted a simple answer to a simple question: are the five trading days around an earnings announcement actually more volatile than any other week? Not "does volatility feel higher", but does the math say it's higher, consistently, across six years of data?</p>
     <p>To answer this question properly we used three different statistical methods:<br>● a classical hypothesis test that asks whether the difference is real or just noise,<br>● a time-series model (GARCH) that accounts for the fact that volatile days cluster together, and<br>● a Bayesian extension that accounts for uncertainty.</p>
     <p>All the computation is in R; the code is included and reproducible.</p>
@@ -290,7 +303,8 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 
     <h3 id="b2">The Data: Six Years of Tech Stocks</h3>
     <p>We downloaded daily adjusted closing prices for META, AAPL, AMZN, NFLX, and GOOGL from January 2019 through December 2024 using R's <code>quantmod::getSymbols()</code> function, which pulls from Yahoo Finance. This gave us approximately <strong>1,508 trading days</strong> per ticker—roughly 7,540 data points in total.</p>
-    <p>From daily prices we computed <strong>log returns</strong>—which is the percentage change from one day to the next, expressed in a slightly different math form: \( r_t = \ln\left(\frac{P_t}{P_{t-1}}\right) \). \( r_T \) is the log return on day t (i.e. daily return), \( P_t \) is the adjusted closing price on day t, and \( P_{t-1} \) is the adjusted closing price from the previous trading day. We use log returns rather than simple percentage changes because they handle large moves more symmetrically and behave better in statistical models. If a stock falls 50% and then rises 100%, simple returns add up incorrectly—log returns do not. Each ticker yielded 1,507 return observations over the six-year period.</p>
+    <p>From daily prices we computed <strong>log returns</strong>—which is the percentage change from one day to the next, expressed in a slightly different math form: \( r_t = \ln\left(\frac{P_t}{P_{t-1}}\right) \). \( r_T \) is the log return on day t (i.e. daily return), \( P_t \) is the adjusted closing price on day t, and \( P_{t-1} \) is the adjusted closing price from the previous trading day.</p>
+    <div class="callout info" style="margin:.8rem 0"><strong>Log returns in plain English:</strong> A log return is nearly identical to a regular percentage change for small moves. If a stock goes from $100 to $103, the simple return is +3% and the log return is +2.96%—basically the same. We prefer log returns because they have a useful mathematical property: you can <em>add</em> daily log returns to get the total return over any period, whereas simple percentage returns have to be multiplied (which gets messy). They also handle very large moves more accurately. Throughout this project, whenever we say "return", we mean log return.</div> Each ticker yielded 1,507 return observations over the six-year period.</p>
     <p>For each company we manually collected 24 quarterly earnings dates (2019–2024) from Nasdaq's public calendar, since historical earnings timestamps are not consistently available in a single structured dataset. We defined an <strong>earnings window</strong> as the 3 trading days before the announcement, the announcement day itself, and 1 trading day after—adding up to 5 days per quarter and around 120 days per ticker across the full period. The pre-announcement days matter because information leaks early and traders position themselves ahead of the number. The single post-announcement day captures the immediate reaction. We considered everything outside those windows as "normal" trading and this formed our comparison group.</p>
     <p>The period 2019–2024 was deliberately chosen to include diverse market regimes: the 2020 COVID crash and V-shaped recovery, the 2021 meme-stock bubble and tech euphoria, the 2022 rate-hike-driven tech selloff (NFLX fell 75%, META fell 65%), and the 2023–24 AI-driven recovery. This variety stress-tests whether earnings effects are robust or regime-dependent.</p>
 
@@ -333,19 +347,22 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     <div class="basid">Rejecting the null hypothesis means that the observed increase in volatility during earnings windows is too large to be explained by random variation alone, at the chosen significance level.<br><strong>Earnings move these stocks. That's no longer a question.</strong></div>
 
     <h3 id="b6">Volatility Modeling with GARCH(1,1)</h3>
-    <p>The t-test tells us whether earnings weeks are more volatile on average, but it treats every day as independent, with no memory. In reality, turbulent days cluster: a big move today makes another big move tomorrow more likely. Anyone who lived through March 2020 or the 2022 tech selloff has seen this pattern before. The GARCH(1,1) model (the name stands for Generalized Autoregressive Conditional Heteroskedasticity) is designed to capture this by producing a time-varying estimate of volatility that updates each day based on recent shocks.</p>
+    <p>The t-test tells us whether earnings weeks are more volatile on average, but it treats every day as independent, with no memory. In reality, turbulent days cluster: a big move today makes another big move tomorrow more likely. Anyone who lived through March 2020 or the 2022 tech selloff has seen this pattern before.</p>
+    <div class="callout info" style="margin:.8rem 0"><strong>A simple analogy:</strong> Think of market volatility like turbulence on a flight. When you hit one rough patch, you're more likely to hit another soon after — turbulence clusters. GARCH is the model that tracks this "turbulence memory." It updates its estimate of risk every single day based on recent events, rather than assuming all days are equally risky.</div>
+    <p>The GARCH(1,1) model (the name stands for Generalized Autoregressive Conditional Heteroskedasticity) captures this by producing a time-varying estimate of volatility that updates each day based on recent shocks.</p>
     <p>The model tracks three components of risk: <span class="bstat">ω</span> (a long-run baseline level of volatility), <span class="bstat">α</span> (how much new shocks—yesterday's return—affects today's volatility), and <span class="bstat">β</span> (how much of yesterday's volatility carries forward). Think of it as a weighted average: the market has a long-run "normal" risk level, each day's shock adds some new information, and yesterday's risk estimate persists with weight β. R's <code>rugarch</code> package estimates these parameters by using maximum likelihood.</p>
     <p>The GARCH results show clear differences in how volatility evolves across companies. All five tickers exhibit strong volatility persistence, but the balance between "shock sensitivity" and "memory" varies. <strong>NFLX has the highest persistence</strong> (α + β = 0.993), meaning volatility decays very slowly after spikes, often remaining elevated for weeks. <strong>AMZN shows the strongest reaction to new information</strong> (α = 0.171), but slightly faster mean reversion (α + β = 0.949). <strong>GOOGL mean-reverts the fastest</strong> (α + β = 0.923), suggesting earnings-driven volatility fades more quickly than in the other companies.</p>
 
     <div class="bfig">
       <div class="cw h200"><canvas id="bAB" role="img" aria-label="Alpha plus beta chart">AB persistence.</canvas></div>
-      <div class="bfig-cap">Fig. 3 · α + β persistence by ticker. R's <code>rugarch::ugarchfit(sGARCH(1,1))</code>, α (amber) and β (blue) shown separately. Range: GOOGL at 0.923 (fastest reversion) to NFLX at 0.993 (slowest). AMZN's α = 0.171 stands out as the most news-reactive model.</div>
+      <div class="bfig-cap">Fig. 3 · α + β persistence by ticker. R's <code>rugarch::ugarchfit(sGARCH(1,1))</code>, α (amber) and β (blue) shown separately. Range: GOOGL at 0.923 (fastest reversion) to NFLX at 0.993 (slowest). AMZN's α = 0.171 stands out as the most news-reactive model.<br><strong style="color:var(--t1)">How to read:</strong> The full width of each bar = α + β. Amber slice = sensitivity to new shocks. Blue slice = "memory" of past volatility. A longer total bar = volatility takes longer to return to normal after a spike.</div>
     </div>
 
     <p>To evaluate how well the model performs out of sample, we compute rolling forecast errors using a 1,000-day training window and a 20-day prediction horizon. We measure performance using RMSE (root mean square error), which captures how far the model's predicted volatility is from the actual realized volatility on average.</p>
     <p>Across tickers, RMSE ranges from <span class="bstat">1.13 pp</span> (AAPL) to <span class="bstat a">2.21 pp</span> (META). These values reflect the difficulty of forecasting realized volatility, which is itself noisy because it is based on daily absolutely returns |r<sub>t</sub>|. The key point is that GARCH is not trying to predict exact daily moves—it is modeling the underlying volatility regime. That is a smoother, more stable quantity than individual returns, and therefore a more realistic forecasting target.</p>
 
     <h3 id="b7">Bayesian Extension</h3>
+    <div class="callout warn" style="margin-bottom:1rem"><strong>Before the details — the core intuition:</strong> Standard statistics says "we estimate α = 0.108 and treat that as fact." Bayesian statistics says "we believe α is most likely 0.108, but honestly it could be anywhere from 0.092 to 0.124 — and we'll factor that uncertainty into every prediction we make." That's the essential difference. The Bayesian approach is more conservative and more honest.</div>
     <p>The GARCH fit gives us point estimates for α, β, and ω. But how confident should we be in those numbers? If our dataset were slightly different—a different 6-year window or different earnings shocks—would the parameters be materially different? Standard (frequentist) methods like maximum likelihood estimation give us a single best estimate of these parameters, along with confidence intervals, but they treat those estimates as fixed when making predictions. Bayesian inference instead treats the parameters themselves as uncertain and models that uncertainty explicitly.</p>
     <p>We specified a Bayesian GARCH model for NFLX—the highest-volatility ticker, chosen because it provides the most information about extreme volatility dynamics. We used a modern sampling method (a Markov Chain Monte Carlo algorithm) to generate many plausible values of the model parameters, where values that better explain the data are sampled more often than less likely ones. This was based on a 500-day window of NFLX returns. These samples come from the posterior distribution—the probability distribution over possible parameter values, given the data and our assumptions.</p>
     <p><em>A note on transparency:</em> the full sampling procedure is computationally expensive and was run as a one-time offline step. The posterior results reported here come from that run; they are not re-computed on each page load. The <code>analysis.R</code> script documents this explicitly with a note that the Bayesian block contains cached results. We flag this rather than quietly hard-coding it because reproducibility matters.</p>
@@ -370,6 +387,23 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     <p><strong>Lack of Market Expectation Measures:</strong> We measure volatility based on realized price movements, but do not directly incorporate market expectations. In practice, options prices reflect implied volatility—the market's expectation of future movement—while our analysis captures realized volatility—what actually occurs. Comparing these two would allow us to assess whether markets systematically overestimate or underestimate earnings volatility, which is central to many trading strategies.</p>
     <p>Despite these limitations, the overall evidence consistently supports the conclusion that earnings announcements are associated with elevated volatility across these stocks.</p>
 
+    <h3>Quick Glossary</h3>
+    <p>Here's a plain-English reference for the technical terms used in this project, in case you want them all in one place.</p>
+    <div style="display:grid;gap:.5rem;margin:1rem 0">
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">Log Return</span> — The percentage change in a stock's price from one day to the next, expressed in a slightly different mathematical form. Nearly identical to a simple percentage change for small moves. We use it because it behaves better in statistical models.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">Volatility</span> — A measure of how much a stock's price moves around. High volatility = big swings. We measure it as the absolute value of daily log returns: |r_t|. A stock with 2% average daily volatility moves about 2% per day in either direction.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">Standard Deviation (σ)</span> — A single number summarizing how spread out returns are. Larger std dev = bigger typical daily moves. NFLX at 2.84% means its typical daily move is about ±2.84%.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">Skewness</span> — Measures whether the distribution of returns leans left or right. Negative skewness (like all 5 stocks here) means big drops are more extreme than big gains — bad days are badder than good days are good.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">Excess Kurtosis / Fat Tails</span> — Measures how often extreme moves happen compared to a normal (bell-curve) distribution. A normal distribution has kurtosis = 0. NFLX at 41.4 means extreme days happen far more often than a normal distribution would predict. "Fat tails" just means those extreme events are more likely.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">Null Hypothesis (H₀)</span> — The "boring" assumption we're trying to disprove. Here: "earnings weeks are no more volatile than normal weeks." We only reject it if the data gives us very strong evidence against it.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">p-value</span> — The probability of getting a result at least this extreme if the null hypothesis were true. A small p-value (like 0.0001) means the result would be very unlikely by chance — strong evidence against the null. We require p < 0.01 (less than 1% chance it's random).</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">Welch's t-test</span> — A statistical test for comparing the averages of two groups when those groups may have different variance (spread). We use it to compare earnings-week volatility vs. normal-week volatility for each stock.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">GARCH(1,1)</span> — A time-series model for volatility that allows risk to change day by day. It says: today's risk depends on yesterday's shock and yesterday's risk level. The (1,1) means it uses 1 lag of each. Higher α+β = risk persists longer after a spike.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">RMSE (Root Mean Square Error)</span> — A measure of forecast accuracy. It's the typical size of the model's prediction errors. Lower = better. 1.13 pp (AAPL) means the model's volatility forecasts are off by about 1.1 percentage points on average.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">Bayesian Inference</span> — An approach to statistics that explicitly quantifies uncertainty in parameters. Instead of saying "α = 0.108", it says "α is most likely 0.108, with a 95% chance it's between 0.092 and 0.124." This uncertainty is then carried forward into predictions, producing more realistic (wider) forecast intervals.</div>
+      <div style="padding:.7rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--t1);line-height:1.7"><span style="color:var(--t0);font-weight:600">HPD Interval</span> — Highest Posterior Density interval. The Bayesian version of a confidence interval. A 95% HPD interval contains 95% of the posterior probability. "The true value is within this range with 95% probability, given the data."</div>
+    </div>
+
     <hr class="bhr">
     <p style="font-family:var(--mono);font-size:10px;color:var(--t3);line-height:1.8"><strong style="color:var(--t2)">Data & Methods:</strong> Yahoo Finance (R quantmod) · R (rugarch, moments, xts) · PyMC 5 (Bayesian, offline)&nbsp;·&nbsp;<strong style="color:var(--t2)">Period:</strong> Jan 2019 – Dec 2024&nbsp;·&nbsp;<strong style="color:var(--t2)">Tickers:</strong> META, AAPL, AMZN, NFLX, GOOGL
     </p>
@@ -390,6 +424,11 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     </div>
   </div>
   <div class="sh"><span class="sh-n">01</span><span class="sh-t">Data Overview</span></div>
+  <!-- Plain-English intro -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--purple);border-radius:var(--rl);padding:1.1rem 1.35rem;margin-bottom:1.5rem">
+    <div style="font-size:9px;color:var(--purple);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;font-weight:600">⬡ Plain English Summary — what this tab shows</div>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75">This tab shows basic facts about the raw data: what the five stocks look like on a "normal" day, how much they typically move, and how they compare to each other. It also shows each stock's price history over the 6-year period — so you can see the COVID crash, the 2022 tech selloff, and the 2023 AI recovery in context. This is the "before any analysis" view — just the data itself.</p>
+  </div>
   <div class="metrics">
     <div class="met"><div class="met-l">Stocks</div><div class="met-v">5</div><div class="met-s">FAANG Tickers</div></div>
     <div class="met"><div class="met-l">Period</div><div class="met-v" style="font-size:16px;padding-top:3px">6 yrs</div><div class="met-s">Jan 2019 – Dec 2024</div></div>
@@ -430,6 +469,15 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
         </tbody>
       </table></div>
       <div class="chart-src"><strong>Source:</strong> R · <code>quantmod::getSymbols()</code> → <code>Ad()</code> → <code>diff(log(.))</code> · <code>moments::skewness()</code> / <code>kurtosis() − 3</code></div>
+      <!-- Column explanations -->
+      <div style="font-size:11px;color:var(--t2);line-height:1.8;margin-top:.75rem;padding:.75rem;background:var(--bg3);border-radius:var(--r)">
+        <strong style="color:var(--t1)">What each column means:</strong><br>
+        <span style="color:var(--t0)">Mean %</span> — Average daily return. Positive = stock went up on average over the period.<br>
+        <span style="color:var(--t0)">Std %</span> — Standard deviation: a typical day's move (up or down). Higher = more volatile stock.<br>
+        <span style="color:var(--t0)">Skewness</span> — Negative value means big drops tend to be more extreme than big gains. A symmetric bell curve has skewness = 0.<br>
+        <span style="color:var(--t0)">Ex. Kurt.</span> — "Excess kurtosis": how much more often extreme moves happen than a normal distribution would predict. 0 = normal distribution; higher = fatter tails = more extreme events. NFLX at 41.4 means extreme days happen far more often than expected.<br>
+        <span style="color:var(--t0)">n</span> — Number of trading days (data points) per ticker.
+      </div>
     </div>
     <div class="card">
       <div class="card-t">Daily Standard Deviation (%)</div>
@@ -447,6 +495,7 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     <div class="card-t">Normalised closing prices · base = 100 · January 2019</div>
     <div class="leg"><span class="li"><span class="lsq" style="background:#22c55e"></span>META</span><span class="li"><span class="lsq" style="background:#3b82f6"></span>AAPL</span><span class="li"><span class="lsq" style="background:#f59e0b"></span>AMZN</span><span class="li"><span class="lsq" style="background:#a78bfa"></span>NFLX</span><span class="li"><span class="lsq" style="background:#ef4444"></span>GOOGL</span></div>
     <div class="cw h320" id="norm-wrap"><canvas id="normChart" role="img" aria-label="Normalised prices">Normalised prices.</canvas></div>
+    <div style="font-size:11px;color:var(--t2);padding:.45rem .7rem;background:var(--bg3);border-radius:3px;margin-top:.5rem">📊 <strong style="color:var(--t1)">How to read this chart:</strong> All stocks start at 100 in January 2019 so we can compare them fairly (they had very different share prices). A value of 300 means the stock tripled. Look for the steep drops in 2020 (COVID) and 2022 (rate hikes / tech selloff), and the sharp recovery in 2023.</div>
     <div class="chart-src"><strong>Source:</strong> R · <code>norm &lt;- (adj_close / adj_close[1,]) * 100</code> thinned to 150 points for JSON transfer · real data from Yahoo Finance after Run</div>
   </div>
 </div>
@@ -456,6 +505,14 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <div class="panel" id="panel-hypothesis">
 <div class="wrap">
   <div class="sh"><span class="sh-n">02</span><span class="sh-t">Hypothesis Testing</span></div>
+  <!-- Plain-English intro for Hypothesis tab -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:var(--rl);padding:1.1rem 1.35rem;margin-bottom:1.5rem">
+    <div style="font-size:9px;color:var(--green);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;font-weight:600">⬡ Plain English Summary — what this tab is about</div>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75;margin-bottom:.6rem">We're asking a simple yes/no question: <strong style="color:var(--t0)">do these stocks actually move more on earnings days, or does it just feel that way?</strong></p>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75;margin-bottom:.6rem">To answer it rigorously, we split each stock's 6-year history into two groups: days that fell near an earnings announcement vs. every other day. Then we measured how much the price moved each day (in either direction). We used a statistical test to check whether the "earnings" group moved significantly more than the "normal" group — or whether the difference could just be random luck.</p>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75"><strong style="color:var(--t0)">Result: All 5 stocks cleared the bar.</strong> The earnings effect is real, statistically significant, and consistent across six years of data.</p>
+  </div>
+
   <div class="hyp-block">
     <h3>What Are We Testing?</h3>
     <p style="font-size:12px;color:var(--t1);margin-bottom:1rem;line-height:1.75">We want to know whether stock prices move more (i.e., are more volatile) during the week around an earnings announcement compared to a typical trading week. We measure volatility using the <strong>absolute daily log return</strong>, written as |r<sub>t</sub>|. A large |r<sub>t</sub>| value means the stock moved a lot that day (in either direction).<br><br>We formalize the question using statistical hypothesis testing:</p>
@@ -477,7 +534,7 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     </div>
     <div>
       <span class="eq-main">Significance Threshold: α = 0.01 (reject H<sub>0</sub> when p-value < 0.01)</span>
-      <div class="eq-exp">We use a stricter threshold than usual. This means we only reject the null hypothesis if there is less than a 1% chance that the result occurred randomly.<br><br>A p-value of 0.002 means: if H<sub>0</sub> were true, we'd see data this extreme only 0.2% of the time. That is strong evidence to reject H₀. A p-value of 0.089 means: we'd see data this extreme 8.9% of the time even if there were no earnings effect, which is not convincing enough to reject H<sub>0</sub>.</div>
+      <div class="eq-exp">We use a stricter threshold than usual (the common default is 5%). This means we only call a result "statistically significant" if there's less than a 1-in-100 chance it occurred by random luck.<br><br><strong>What is a p-value?</strong> A p-value is the probability of getting a result at least this extreme <em>if there were actually no earnings effect</em>. It is not the probability that the result is wrong—it's more like a "plausibility score" for the no-effect explanation. A small p-value means the no-effect explanation is implausible.<br><br>A p-value of 0.002 means: if earnings had no effect, we'd see data this extreme only 0.2% of the time. That is strong evidence of a real effect. A p-value of 0.089 means: we'd see data this extreme 8.9% of the time even if there were no earnings effect—not convincing enough to reject H<sub>0</sub>.</div>
     </div>
     <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);font-size:11px;color:var(--t2)">
       <strong style="color:var(--t1)">R code:</strong> <code>t.test(earn_vol, normal_vol, alternative="greater", var.equal=FALSE)</code> — run separately for each of the 5 tickers. Returns t-statistic, degrees of freedom (Welch's adjusted), and one-tailed p-value.
@@ -500,8 +557,18 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     <span class="li"><span class="lsq" style="background:#374151"></span>Normal week vol (%)</span>
   </div>
   <div class="cw h280" style="margin-bottom:.5rem" id="hyp-wrap"><canvas id="hypChart" role="img" aria-label="Hypothesis bar chart">Hyp chart.</canvas></div>
+  <div style="font-size:11px;color:var(--t2);padding:.45rem .7rem;background:var(--bg3);border-radius:3px;margin-bottom:.5rem">📊 <strong style="color:var(--t1)">How to read this chart:</strong> Each pair of bars shows one stock. The green bar is the average daily price move during earnings week. The grey bar is the average on all other days. The bigger the gap between green and grey, the stronger the earnings effect.</div>
   <div class="chart-src" style="margin-bottom:1.25rem"><strong>Source:</strong> R · <code>mean(abs(log_returns[earnings_mask])) * 100</code> and <code>mean(abs(log_returns[!earnings_mask])) * 100</code> per ticker · <code>build_earnings_mask()</code> uses <code>get_indexer(ed, method="nearest")</code> ± pre/post days</div>
 
+  <div style="font-size:11px;color:var(--t2);margin-bottom:.6rem;line-height:1.8">
+    <strong style="color:var(--t1)">Column guide:</strong> &nbsp;
+    <span style="color:var(--t0)">Earn. vol %</span> = average daily price move during earnings windows &nbsp;·&nbsp;
+    <span style="color:var(--t0)">Normal vol %</span> = average daily move on all other days &nbsp;·&nbsp;
+    <span style="color:var(--t0)">Δ</span> = the difference (how much bigger earnings moves are) &nbsp;·&nbsp;
+    <span style="color:var(--t0)">t-stat</span> = the test statistic (higher = stronger evidence) &nbsp;·&nbsp;
+    <span style="color:var(--t0)">df</span> = Welch-adjusted degrees of freedom &nbsp;·&nbsp;
+    <span style="color:var(--t0)">p-value</span> = probability this result occurred by chance (lower = stronger evidence)
+  </div>
   <div class="tw" style="margin-bottom:1.25rem"><table>
     <thead><tr><th>Ticker</th><th class="tr">Earn. vol %</th><th class="tr">Normal vol %</th><th class="tr">Δ</th><th class="tr">t-stat</th><th class="tr">df</th><th class="tr">p-value</th><th>Result</th></tr></thead>
     <tbody id="hypTbody">
@@ -523,22 +590,36 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <div class="panel" id="panel-garch">
 <div class="wrap">
   <div class="sh"><span class="sh-n">03</span><span class="sh-t">GARCH(1,1) Model</span><span class="sh-d">R · rugarch · sGARCH · MLE</span></div>
+
+  <!-- Plain-English intro -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:var(--rl);padding:1.1rem 1.35rem;margin-bottom:1.25rem">
+    <div style="font-size:9px;color:var(--blue);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;font-weight:600">⬡ Plain English Summary — what GARCH does</div>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75;margin-bottom:.6rem"><strong style="color:var(--t0)">Think of GARCH like a weather forecast for stock risk.</strong> Just as rainy days tend to be followed by more rain, volatile stock markets tend to stay volatile for a while. GARCH is a mathematical model that tracks this "memory" in volatility — it updates its estimate of how risky a stock is every single day, based on what happened the day before.</p>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75;margin-bottom:.6rem">The t-test in the previous tab treats every day as independent (no memory). GARCH fixes that. It says: <em>if yesterday was wild, today is more likely to be wild too</em>. This makes the model much more realistic for financial data.</p>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75"><strong style="color:var(--t0)">The name stands for:</strong> <em>Generalized Autoregressive Conditional Heteroskedasticity</em> — a mouthful that just means "a model where today's risk depends on yesterday's surprises and yesterday's risk level". The (1,1) means it uses 1 day of past shocks and 1 day of past volatility.</p>
+  </div>
+
   <div class="callout info" style="margin-bottom:1.5rem">
     <strong>Why GARCH?</strong> The t-test tells us whether earnings weeks are more volatile on average. But it ignores something crucial: volatility is not independent over time.<br><br>In financial markets, large movements tend to cluster: a big move today predicts a big move tomorrow and quiet periods also tend to persist. This phenomenon is called volatility clustering. To model this, we use GARCH(1,1) which allows volatility to change over time instead of assuming it is constant.
   </div>
   <div class="formula">
-    <srong>Model Intuition</srong><br>
-    We decompose returns into two parts:
+    <strong>Model Intuition — what each piece means in plain terms</strong><br>
+    The model breaks each day's return into two parts:
 
     \[r_t = \mu + \varepsilon_t\]
+    <span style="font-size:11px;color:var(--t2)">→ Today's return = long-run average + a random surprise (the shock)</span>
+
     \[\varepsilon_t = \sigma_t z_t, \quad z_t \sim \mathcal{N}(0,1)\]
+    <span style="font-size:11px;color:var(--t2)">→ The size of the shock = today's risk level × a random draw (like a dice roll)</span>
+
     \[\sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2\]
+    <span style="font-size:11px;color:var(--t2)">→ Today's risk = baseline + how big yesterday's shock was + how risky yesterday already was</span>
+    <br>
+    <strong>ω (omega)</strong> = the long-run "normal" level of risk when nothing special is happening<br>
+    <strong>α (alpha)</strong> = ARCH term: how sensitive volatility is to <em>new</em> shocks — how quickly the model reacts to a surprise<br>
+    <strong>β (beta)</strong> = GARCH term: how much risk "carries over" from one day to the next — the model's memory<br><br>
 
-    ω (omega) = long-run average level of volatility<br>
-    α (alpha)= ARCH term: how strongly new shocks affect volatility (news sensitivity)<br>
-    β (beta)= GARCH term: how much past volatility carries into the future (memory)<br><br>
-
-    The most important quantity is: <strong>α + β</strong> which measures volatility persistence. A value closer to 1 indicates that shocks last a long time, while lower values indicate that there's a faster return to normal.
+    The most important quantity is: <strong>α + β</strong> — it measures <strong>persistence</strong>. When α + β is close to 1 (like 0.99), a shock today will still be felt weeks later. When it's lower (like 0.85), the model "forgets" faster and returns to normal sooner.
   </div>
 
   <div class="g2" style="margin:1.25rem 0">
@@ -560,13 +641,14 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
       <div class="card-t">α + β decomposition — persistence bar</div>
       <div id="pbars"></div>
       <div class="leg" style="margin-top:.9rem"><span class="li"><span class="lsq" style="background:var(--amber)"></span>α news impact</span><span class="li"><span class="lsq" style="background:var(--blue)"></span>β persistence</span></div>
-      <div class="chart-src" style="margin-top:.75rem"><strong>Reading this:</strong> Each bar sums to α+β. The amber slice shows how reactive the model is to new shocks; the blue slice shows how much yesterday's variance is "carried" forward. All five sum above 0.98 — near-unit-root variance.</div>
+      <div class="chart-src" style="margin-top:.75rem"><strong>How to read:</strong> Each bar represents one stock. The amber (yellow-orange) slice shows α — how reactive the model is to yesterday's shock. The blue slice shows β — how much of yesterday's risk level carries forward. The total width = α + β. All five sum above 0.92 — meaning volatility is highly persistent in all of these stocks. NFLX at 0.993 means a shock today will still be 50% as strong more than 100 days later.</div>
     </div>
   </div>
 
   <div class="card" style="margin-bottom:1.25rem">
     <div class="card-t">NFLX conditional volatility σ_t · GARCH(1,1) fitted by rugarch</div>
     <div class="cw h320" id="gv-wrap"><canvas id="garchVolChart" role="img" aria-label="NFLX cond vol">NFLX cond vol.</canvas></div>
+    <div style="font-size:11px;color:var(--t2);padding:.45rem .7rem;background:var(--bg3);border-radius:3px;margin-top:.5rem">📊 <strong style="color:var(--t1)">How to read this chart:</strong> The line shows the model's daily estimate of Netflix's risk level (σ_t). Notice the spikes — those are GARCH's way of saying "right now volatility is elevated". Watch how it slowly declines after peaks: that slow decay is what α + β = 0.993 looks like in practice.</div>
     <div class="chart-src"><strong>Source:</strong> R · <code>sigma(ugarchfit(spec, data=r_nflx*100))</code> — the <code>sigma()</code> function extracts the fitted conditional standard deviation σ_t from the GARCH object. Thinned to 150 points for JSON. Dashed lines mark quarterly earnings dates.</div>
   </div>
 
@@ -574,6 +656,7 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
     <div class="card">
       <div class="card-t">Rolling forecast RMSE · 1000-day train · 20-day horizon</div>
       <div class="cw h180" id="rmse-wrap"><canvas id="rmseChart" role="img" aria-label="RMSE chart">RMSE.</canvas></div>
+      <div style="font-size:11px;color:var(--t2);padding:.45rem .7rem;background:var(--bg3);border-radius:3px;margin:.4rem 0">📊 <strong style="color:var(--t1)">How to read this chart:</strong> Lower = more accurate forecast. AAPL at 1.13 pp is easiest to predict; META at 2.21 pp is hardest. These errors are in percentage-point units — so AAPL's forecast is off by about 1.1 percentage points on average.</div>
       <div class="chart-src"><strong>Source:</strong> R · <code>ugarchforecast(fit, n.ahead=20)</code> → <code>sigma(fc)</code> vs <code>abs(test_returns)</code>. RMSE averaged over 10 rolling windows per ticker.</div>
       <p><br>RMSE (Root Mean Square Error) measures how far the model's volatility forecasts are from actual observed volatility on average. Lower values indicate better predictive accuracy.<br><br>While exact daily volatility is difficult to predict, the model consistently captures the overall level and changes in volatility across time.</p>
     </div>
@@ -596,6 +679,15 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <div class="panel" id="panel-bayesian">
 <div class="wrap">
   <div class="sh"><span class="sh-n">04</span><span class="sh-t">Bayesian GARCH Extension</span><span class="sh-d">Bayesian GARCH · NFLX · 500 Days · Offline PyMC Run</span></div>
+
+  <!-- Plain-English intro -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--amber);border-radius:var(--rl);padding:1.1rem 1.35rem;margin-bottom:1.25rem">
+    <div style="font-size:9px;color:var(--amber);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;font-weight:600">⬡ Plain English Summary — what Bayesian means here</div>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75;margin-bottom:.6rem">The GARCH model estimates a single number for each parameter — say, α = 0.108. But that number is an <em>estimate</em>, not a truth. If we used a slightly different time window or different market conditions, we'd get α = 0.103, or α = 0.115. The standard approach ignores this uncertainty and treats 0.108 as exact.</p>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75;margin-bottom:.6rem"><strong style="color:var(--t0)">Bayesian inference is honest about that uncertainty.</strong> Instead of a single number, it gives you a range: "we believe α is most likely around 0.108, but it could reasonably be anywhere from 0.092 to 0.124." This is like a weather forecast saying "70% chance of rain" rather than just "it will rain" — it gives you a sense of confidence, not just a point prediction.</p>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75"><strong style="color:var(--t0)">Why does this matter?</strong> When predicting future volatility, carrying that uncertainty forward produces more realistic (slightly wider) prediction intervals. Our Bayesian model captured 93% of actual future volatility within its prediction range, vs. 86% for the standard method — a meaningful improvement for real-world risk management.</p>
+  </div>
+
   <div class="callout info">
     <strong>Why go Bayesian?</strong> Standard (frequentist) GARCH gives a single best estimate for each parameter (e.g., α = 0.108). But this ignores an important fact: those parameters are uncertain.<br><br>If we repeated the analysis on a different sample of data, we would get slightly different values. Bayesian inference solves this by estimating a <em>distribution over parameters</em>, not a single value. This allows us to quantify uncertainty directly, produce more realistic prediction intervals, and improve risk estimates in volatile periods.
   </div>
@@ -625,10 +717,12 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
       <div class="cov"><div class="cov-h"><span>Bayesian (PyMC)</span><span style="color:var(--green)">93%</span></div><div class="cov-t"><div class="cov-f" style="width:93%;background:var(--green)">93%</div></div></div>
       <div class="cov"><div class="cov-h"><span>Frequentist GARCH</span><span>86%</span></div><div class="cov-t"><div class="cov-f" style="width:86%;background:var(--blue)">86%</div></div></div>
       <p style="font-size:10px;color:var(--t2);margin-top:.5rem;line-height:1.5">% of out-of-sample realised volatility values falling inside the 95% prediction interval</p>
+      <p style="font-size:11px;color:var(--t2);margin-top:.5rem;line-height:1.6"><strong style="color:var(--t1)">In plain English:</strong> If the model predicts "volatility tomorrow will be between 1.5% and 3.0%", how often is the actual volatility in that range? 93% of the time for Bayesian, 86% for standard GARCH. A 7pp gap is meaningful for real risk management.</p>
     </div>
   </div>
   <div class="card" style="margin-bottom:1.25rem">
-    <div class="card-t">95% HPD intervals — posterior width visualisation</div>
+    <div class="card-t">95% HPD intervals — how certain are we about each parameter?</div>
+    <p style="font-size:11px;color:var(--t2);line-height:1.7;margin-bottom:.75rem">HPD = <strong style="color:var(--t1)">Highest Posterior Density</strong> interval — the Bayesian equivalent of a confidence interval. The bar shows the range of plausible values. A narrow bar means we're confident; a wide bar means more uncertainty. The vertical line marks the most likely value (the posterior mean).</p>
     <div class="hpd"><span class="hpd-l">α (news)</span><div class="hpd-t"><div class="hpd-f" style="left:28%;width:28%;background:var(--amber)"></div><div class="hpd-c" style="left:41%;background:var(--amber)"></div></div><span class="hpd-v">0.108 &nbsp;[0.092 – 0.124]</span></div>
     <div class="hpd"><span class="hpd-l">β (carry)</span><div class="hpd-t"><div class="hpd-f" style="left:57%;width:32%;background:var(--blue)"></div><div class="hpd-c" style="left:73%;background:var(--blue)"></div></div><span class="hpd-v">0.878 &nbsp;[0.851 – 0.903]</span></div>
   </div>
@@ -676,17 +770,23 @@ code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;font
 <div class="panel" id="panel-rconsole">
 <div class="wrap">
   <div class="sh"><span class="sh-n">05</span><span class="sh-t">R Console</span><span class="sh-d">WebR · R in Browser via WebAssembly</span></div>
-  <div class="callout info" style="margin-bottom:1.5rem">
-    <strong>Overview.</strong> This is a live R console running directly in the browser using WebR (R compiled to WebAssembly). No installation is required, and all computations run locally in your browser. The console initializes in ~10-15 seconds on first load. It is designed to let users interactively explore the statistical methods used in this project. Use the buttons below to load example code segments from our project.
+  <!-- Plain-English intro -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--t3);border-radius:var(--rl);padding:1.1rem 1.35rem;margin-bottom:1.25rem">
+    <div style="font-size:9px;color:var(--t2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;font-weight:600">⬡ Plain English Summary — what you can do here</div>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75;margin-bottom:.6rem">This tab lets you <strong style="color:var(--t0)">run real R code directly in your browser</strong> — no installation needed. It's powered by WebR, which is R compiled to run in the browser. Think of it as a live sandbox for exploring the statistical methods we used.</p>
+    <p style="font-size:13px;color:var(--t1);line-height:1.75">Click any snippet button to load a pre-written example. Read the comments in the code (the lines starting with <code>#</code>) — they explain what every line does. Then click ▶ Run to see the output. You can also edit the code and run your own experiments.</p>
+  </div>
+    <strong>Overview.</strong> This is a live R console running directly in the browser using WebR (R compiled to WebAssembly). No installation is required, and all computations run locally in your browser. The console initializes in ~10-15 seconds on first load. Use the snippet buttons below to load pre-written code — each one demonstrates one stage of our analysis. Click a button, then click ▶ Run to execute it and see the output.
   </div>
 
+  <div style="font-size:11px;color:var(--t2);margin-bottom:.6rem;line-height:1.7"><strong style="color:var(--t1)">Snippet guide:</strong> Each button loads a self-contained R script that demonstrates one concept from the project. Start with "Summary Stats" to see what the data looks like, then try "Log Returns" to understand how returns are calculated, then "Welch's t-test" to see the core hypothesis test in action.</div>
   <div class="snippet-btns">
-    <button class="snip-btn" onclick="loadSnippet('summary')">Summary Stats</button>
-    <button class="snip-btn" onclick="loadSnippet('returns')">Log Returns</button>
-    <button class="snip-btn" onclick="loadSnippet('ttest')">Welch's t-test</button>
-    <button class="snip-btn" onclick="loadSnippet('garch')">GARCH Model</button>
-    <button class="snip-btn" onclick="loadSnippet('persist')">Volatility Persistence (α+β)</button>
-    <button class="snip-btn" onclick="loadSnippet('earnings')">Earnings Window Masking</button>
+    <button class="snip-btn" onclick="loadSnippet('summary')" title="Compute mean, std dev, skewness and kurtosis for simulated stock returns">Summary Stats</button>
+    <button class="snip-btn" onclick="loadSnippet('returns')" title="Show the difference between simple and log returns, and why we prefer log">Log Returns</button>
+    <button class="snip-btn" onclick="loadSnippet('ttest')" title="Run a one-tailed Welch's t-test comparing earnings vs normal volatility">Welch's t-test</button>
+    <button class="snip-btn" onclick="loadSnippet('garch')" title="Manually simulate a GARCH(1,1) conditional variance process">GARCH Model</button>
+    <button class="snip-btn" onclick="loadSnippet('persist')" title="Calculate how long a volatility shock persists given α and β">Volatility Persistence (α+β)</button>
+    <button class="snip-btn" onclick="loadSnippet('earnings')" title="Build an earnings window mask that labels the 5-day earnings window">Earnings Window Masking</button>
   </div>
 
   <div class="rconsole">
