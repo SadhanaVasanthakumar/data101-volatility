@@ -1,3 +1,35 @@
+# =============================================================================
+# DATA 101 · FINAL PROJECT · SPRING 2026
+# Stock Volatility Around Earnings Announcements
+# Authors: Sonakshi Sharma · Sadhana Vasanthakumar ·
+#          Hemadharshinii Sendhilvel · Rayane Skiker
+# =============================================================================
+#
+# WHAT THIS SCRIPT DOES — plain English overview
+# -----------------------------------------------
+# This script answers one question: do large tech stocks move significantly
+# more during the 5 trading days around their quarterly earnings announcements
+# compared to any other week of the year?
+#
+# To answer it, we run three statistical methods:
+#
+#  1. DESCRIPTIVE STATS — just look at the raw data and understand its shape
+#  2. WELCH'S T-TEST   — a classic statistical test: "is the earnings-week
+#                         average daily move significantly bigger than normal?"
+#  3. GARCH(1,1) MODEL — a time-series model that accounts for the fact that
+#                         volatile periods tend to cluster together (today's
+#                         risk depends on yesterday's events)
+#
+# The script downloads 6 years of daily stock prices from Yahoo Finance,
+# processes them, runs all three analyses, and writes the results to a JSON
+# file that powers the interactive website (index.html).
+#
+# Runtime: ~2-5 minutes (most of the time is downloading data and fitting
+# the rolling GARCH windows).
+#
+# Output: outputs/results.json — this is what the website reads.
+# =============================================================================
+
 suppressPackageStartupMessages({
   library(quantmod)    # price data download
   library(rugarch)     # GARCH modelling
@@ -8,6 +40,18 @@ suppressPackageStartupMessages({
 })
 
 #config
+# -------
+# These are the only values you need to change if you want to extend the
+# analysis to new tickers or a different date range.
+#   TICKERS    — the five tech stocks we analyse (Yahoo Finance symbols)
+#   START/END  — the date range for which we download daily price data
+#   ALPHA      — the significance level for hypothesis testing (0.01 = 1%)
+#                This means we only call a result "significant" if there's
+#                less than a 1% chance it occurred by random luck.
+#   PRE_DAYS   — how many trading days before earnings day to include in the
+#                "earnings window" (we use 3 because information leaks early)
+#   POST_DAYS  — how many trading days after earnings day to include
+#                (we use 1 to capture the immediate market reaction)
 TICKERS    <- c("META", "AAPL", "AMZN", "NFLX", "GOOGL")
 START_DATE <- "2019-01-01"
 END_DATE   <- "2024-12-31"
@@ -19,6 +63,19 @@ dir.create("outputs", showWarnings = FALSE)
 cat("=== Data101 · Stock Volatility Analysis (R) ===\n")
 
 # earnings dates
+# ---------------
+# We manually collected 24 quarterly earnings announcement dates per ticker
+# (4 per year × 6 years = 24) from Nasdaq's public historical earnings
+# calendar. These are the dates on which each company reported its quarterly
+# financial results.
+#
+# Why manual? Automated earnings date databases are often unreliable for
+# historical dates — the "announced date" can shift after the fact. Manual
+# collection from Nasdaq ensures accuracy.
+#
+# These dates are used to build the "earnings window" mask: for each date,
+# we flag the 3 trading days before, the announcement day, and 1 day after
+# as "earnings window" observations. Everything else is "normal trading".
 earnings_dates <- list(
   META = as.Date(c(
     "2019-01-30","2019-04-24","2019-07-24","2019-10-30",
@@ -63,6 +120,20 @@ earnings_dates <- list(
 )
 
 # helper: build earnings mask
+# ----------------------------
+# This function takes a vector of trading dates and a ticker symbol, and
+# returns a TRUE/FALSE vector of the same length. TRUE means "this trading
+# day falls within an earnings window"; FALSE means "normal day".
+#
+# For each earnings announcement date:
+#   1. Find the nearest actual trading day (markets are closed on weekends,
+#      so if earnings fall on a Friday evening, we use Monday)
+#   2. Mark the PRE_DAYS trading days before it as TRUE
+#   3. Mark the announcement day itself as TRUE
+#   4. Mark the POST_DAYS trading day(s) after as TRUE
+#
+# The result is a logical mask we use to split the return series into
+# "earnings" vs "normal" groups for hypothesis testing.
 build_earnings_mask <- function(dates_index, ticker) {
   mask <- rep(FALSE, length(dates_index))
   for (ed in earnings_dates[[ticker]]) {
@@ -76,6 +147,24 @@ build_earnings_mask <- function(dates_index, ticker) {
 }
 
 # step 1 : download data 
+# -----------------------
+# We use the quantmod package to pull daily price data from Yahoo Finance.
+# getSymbols() returns an xts (extended time series) object with OHLCV data
+# (Open, High, Low, Close, Volume, Adjusted Close) for each trading day.
+#
+# We use Ad() to extract the "adjusted close" price, which accounts for
+# stock splits and dividend payments. This ensures that a 2-for-1 stock
+# split doesn't show up as a sudden 50% price drop in our analysis.
+#
+# From adjusted close prices, we compute LOG RETURNS:
+#   r_t = log(P_t / P_{t-1}) = log(P_t) - log(P_{t-1})
+#
+# This is essentially the daily percentage change expressed in log form.
+# For small moves (< 5%), log returns ≈ simple percentage returns.
+# We prefer log returns because:
+#   - They are additive across time (you can sum them to get total return)
+#   - They handle large moves more symmetrically
+#   - They behave better in statistical models
 cat("\n[1/7] Downloading price data from Yahoo Finance...\n")
 
 price_list <- lapply(TICKERS, function(t) {
@@ -110,7 +199,22 @@ cat("  Trading days:", trading_days, "\n")
 cat("  Date range  :", format(start(log_returns)), "to", format(end(log_returns)), "\n")
 
 # step 2: summary statistics 
-
+# ----------------------------
+# Before any formal testing, we describe the basic shape of the return
+# distributions for each stock. This is the "just look at the data" step.
+#
+# What we compute per ticker:
+#   mean     — average daily return (positive = stock went up on average)
+#   std      — standard deviation: a typical day's move (in %). Higher = more volatile.
+#   skewness — symmetry of the distribution. Negative = big drops are more
+#              extreme than equivalent big gains. All 5 stocks are negative.
+#   kurtosis — "fat tails". 0 = normal distribution. Higher = extreme moves
+#              happen more often than expected. NFLX at 41.4 means extreme
+#              days happen far, far more often than a bell curve would predict.
+#   min/max  — the single worst and best days over the full 6-year period
+#   n        — number of trading days (data points)
+#
+# All values expressed as percentages (multiplied by 100).
 cat("\n[2/7] Computing summary statistics...\n")
 
 summary_stats <- lapply(TICKERS, function(t) {
@@ -130,7 +234,22 @@ names(summary_stats) <- TICKERS
 cat("  Done.\n")
 
 # step 3: rolling 30-day annualised volatility
-
+# ---------------------------------------------
+# The summary stats above give us one number for the whole 6-year period.
+# But volatility changes over time — March 2020 was much more volatile than
+# January 2021, for example. Rolling volatility lets us see that variation.
+#
+# For each trading day, we compute the standard deviation of the 30 most
+# recent log returns. This is the "realized volatility" over the past month.
+# We then multiply by sqrt(252) to annualize it (there are ~252 trading days
+# per year), and by 100 to express as a percentage.
+#
+# The result is a time series: "how volatile was this stock over the past
+# 30 days?" plotted day by day. You'll see spikes at COVID (March 2020),
+# and the 2022 tech selloff.
+#
+# We thin the output to 150 data points (from ~1500) for efficient JSON
+# transfer to the website — the shape is preserved.
 cat("\n[3/7] Computing rolling volatility...\n")
 
 roll_vol_list <- lapply(TICKERS, function(t) {
@@ -172,7 +291,34 @@ names(corr_list) <- TICKERS
 cat("  Done.\n")
 
 # step 5: hypothesis testing (welch's t-test)
-
+# --------------------------------------------
+# This is the core statistical test of the project.
+#
+# For each ticker, we:
+#   1. Build an earnings window mask (TRUE for earnings-adjacent days)
+#   2. Split the absolute daily returns (|r_t|) into two groups:
+#        earn_vol   = |returns| on earnings-window days (~120 obs per ticker)
+#        normal_vol = |returns| on all other days        (~1388 obs per ticker)
+#   3. Run a one-tailed Welch's t-test: H1 is that earn_vol > normal_vol
+#
+# Why absolute returns as the volatility proxy?
+#   |r_t| is the simplest, most interpretable measure of daily price movement.
+#   A value of 0.025 means the stock moved 2.5% that day (up or down).
+#   It's less sensitive to outliers than squared returns.
+#
+# Why Welch's t-test (not Student's t)?
+#   The two groups have very different variances. Earnings days are inherently
+#   more spread out. Welch's t-test does NOT assume equal variance and adjusts
+#   the degrees of freedom accordingly — giving a more accurate p-value.
+#
+# Why one-tailed?
+#   We have a directional hypothesis: earnings increase volatility. We are not
+#   testing whether earnings could decrease volatility (we have no reason to
+#   expect that). A one-tailed test gives more power to detect the expected
+#   direction.
+#
+# Significance threshold: ALPHA = 0.01. We only reject H0 if p < 1%.
+# This is stricter than the conventional 5% — we want strong evidence.
 cat("\n[5/7] Running Welch's t-tests...\n")
 
 hyp_results <- lapply(TICKERS, function(t) {
@@ -213,7 +359,33 @@ hyp_results <- lapply(TICKERS, function(t) {
 names(hyp_results) <- TICKERS
 
 #step 6: garch (1,1) model
-
+# -------------------------
+# The t-test above treats every day as independent. But in financial markets,
+# volatility clusters: big moves tend to be followed by more big moves, and
+# calm periods tend to stay calm. This is called "volatility clustering".
+#
+# GARCH(1,1) — Generalized Autoregressive Conditional Heteroskedasticity —
+# is the standard model for capturing this clustering. The (1,1) means we
+# use 1 lag of past shocks and 1 lag of past conditional variance.
+#
+# The model:
+#   r_t    = μ + ε_t                     (return = mean + shock)
+#   ε_t    = σ_t · z_t,  z_t ~ N(0,1)   (shock = risk × random draw)
+#   σ²_t   = ω + α·ε²_{t-1} + β·σ²_{t-1} (today's risk = baseline + yesterday's shock + yesterday's risk)
+#
+#   ω (omega): the long-run baseline variance (what risk returns to)
+#   α (alpha): ARCH term — sensitivity to new shocks ("news impact")
+#   β (beta):  GARCH term — how much past variance carries forward ("memory")
+#
+# Key metric: α + β = "persistence"
+#   Close to 1 → shocks decay very slowly (NFLX at 0.993: weeks of elevated vol)
+#   Further from 1 → faster return to normal (GOOGL at 0.923: faster decay)
+#
+# We fit the model using Maximum Likelihood Estimation (MLE) via rugarch.
+# The data is scaled by ×100 (rugarch expects percentage returns, not decimals).
+#
+# We also compute rolling out-of-sample forecasts (step 6b) to evaluate
+# how well the model predicts realized volatility it has never seen.
 cat("\n[6/7] Fitting GARCH(1,1) models...\n")
 
 garch_spec <- ugarchspec(
@@ -289,6 +461,28 @@ rmse_results <- lapply(TICKERS, function(t) {
 names(rmse_results) <- TICKERS
 
 # step 7: bayesian note 
+# ----------------------
+# The full Bayesian GARCH model was run offline using Python's PyMC library.
+# It is too computationally intensive to re-run on each page load.
+#
+# What Bayesian inference adds:
+#   Standard GARCH gives single point estimates (e.g., α = 0.108).
+#   Bayesian inference gives a full posterior distribution — a range of
+#   plausible values with associated probabilities. This explicitly quantifies
+#   how uncertain we are about each parameter.
+#
+# When used for forecasting, the Bayesian model propagates that uncertainty
+# forward, producing prediction intervals that are slightly wider (more
+# realistic) than the standard model. This is why Bayesian coverage (93%)
+# beats frequentist coverage (86%): the wider intervals are actually correct.
+#
+# Implementation notes:
+#   - Ticker: NFLX (highest volatility, most informative for extreme dynamics)
+#   - Data: 500-day window of NFLX log returns
+#   - Sampler: NUTS (No-U-Turn Sampler), a modern gradient-based MCMC method
+#   - 800 draws, 400 tuning steps, 2 chains, target_accept = 0.90
+#   - Priors: alpha ~ Beta(2,5), beta ~ Beta(5,2), omega ~ Exponential(1.0)
+#     (These reflect the typical financial finding that β >> α)
 cat("\n[7/7] Including Bayesian posterior results (cached from PyMC)...\n")
 # full Bayesian GARCH via PyMC is computationally intensive.
 # sesults below are from the paper (800 draws, 2 chains, NUTS, NFLX 500-day subset)
