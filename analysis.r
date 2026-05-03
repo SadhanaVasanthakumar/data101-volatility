@@ -1,34 +1,4 @@
-# =============================================================================
-# DATA 101 · FINAL PROJECT · SPRING 2026
-# Stock Volatility Around Earnings Announcements
-# Authors: Sonakshi Sharma · Sadhana Vasanthakumar ·
-#          Hemadharshinii Sendhilvel · Rayane Skiker
-# =============================================================================
-#
-# WHAT THIS SCRIPT DOES — plain English overview
-# -----------------------------------------------
-# This script answers one question: do large tech stocks move significantly
-# more during the 5 trading days around their quarterly earnings announcements
-# compared to any other week of the year?
-#
-# To answer it, we run three statistical methods:
-#
-#  1. DESCRIPTIVE STATS — just look at the raw data and understand its shape
-#  2. WELCH'S T-TEST   — a classic statistical test: "is the earnings-week
-#                         average daily move significantly bigger than normal?"
-#  3. GARCH(1,1) MODEL — a time-series model that accounts for the fact that
-#                         volatile periods tend to cluster together (today's
-#                         risk depends on yesterday's events)
-#
-# The script downloads 6 years of daily stock prices from Yahoo Finance,
-# processes them, runs all three analyses, and writes the results to a JSON
-# file that powers the interactive website (index.html).
-#
-# Runtime: ~2-5 minutes (most of the time is downloading data and fitting
-# the rolling GARCH windows).
-#
-# Output: outputs/results.json — this is what the website reads.
-# =============================================================================
+
 
 suppressPackageStartupMessages({
   library(quantmod)    # price data download
@@ -63,7 +33,6 @@ dir.create("outputs", showWarnings = FALSE)
 cat("=== Data101 · Stock Volatility Analysis (R) ===\n")
 
 # earnings dates
-# ---------------
 # We manually collected 24 quarterly earnings announcement dates per ticker
 # (4 per year × 6 years = 24) from Nasdaq's public historical earnings
 # calendar. These are the dates on which each company reported its quarterly
@@ -147,7 +116,6 @@ build_earnings_mask <- function(dates_index, ticker) {
 }
 
 # step 1 : download data 
-# -----------------------
 # We use the quantmod package to pull daily price data from Yahoo Finance.
 # getSymbols() returns an xts (extended time series) object with OHLCV data
 # (Open, High, Low, Close, Volume, Adjusted Close) for each trading day.
@@ -199,7 +167,6 @@ cat("  Trading days:", trading_days, "\n")
 cat("  Date range  :", format(start(log_returns)), "to", format(end(log_returns)), "\n")
 
 # step 2: summary statistics 
-# ----------------------------
 # Before any formal testing, we describe the basic shape of the return
 # distributions for each stock. This is the "just look at the data" step.
 #
@@ -234,7 +201,6 @@ names(summary_stats) <- TICKERS
 cat("  Done.\n")
 
 # step 3: rolling 30-day annualised volatility
-# ---------------------------------------------
 # The summary stats above give us one number for the whole 6-year period.
 # But volatility changes over time — March 2020 was much more volatile than
 # January 2021, for example. Rolling volatility lets us see that variation.
@@ -291,7 +257,6 @@ names(corr_list) <- TICKERS
 cat("  Done.\n")
 
 # step 5: hypothesis testing (welch's t-test)
-# --------------------------------------------
 # This is the core statistical test of the project.
 #
 # For each ticker, we:
@@ -359,7 +324,6 @@ hyp_results <- lapply(TICKERS, function(t) {
 names(hyp_results) <- TICKERS
 
 #step 6: garch (1,1) model
-# -------------------------
 # The t-test above treats every day as independent. But in financial markets,
 # volatility clusters: big moves tend to be followed by more big moves, and
 # calm periods tend to stay calm. This is called "volatility clustering".
@@ -461,7 +425,7 @@ rmse_results <- lapply(TICKERS, function(t) {
 names(rmse_results) <- TICKERS
 
 # step 7: bayesian note 
-# ----------------------
+#
 # The full Bayesian GARCH model was run offline using Python's PyMC library.
 # It is too computationally intensive to re-run on each page load.
 #
