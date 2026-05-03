@@ -1079,12 +1079,14 @@ function simGV(){
 
 /* panel initialization  */
 const panelInited={};
+let cachedData=null;
 function initPanel(id){
   if(panelInited[id])return;
   panelInited[id]=true;
   if(id==='overview'){
     dk('std');CH.std=new Chart(document.getElementById('stdChart'),{type:'bar',data:{labels:T,datasets:[{data:T.map(t=>STD[t]),backgroundColor:TC.map(c=>c+'99'),borderColor:TC,borderWidth:1,borderRadius:3}]},options:bo('Std dev (%)')});
-    dk('norm');CH.norm=new Chart(document.getElementById('normChart'),{type:'line',data:simNorm(),options:bo('Index (base 100)')});
+    const normData=cachedData?{labels:cachedData.norm_prices['META'].dates,datasets:['META','AAPL','AMZN','NFLX','GOOGL'].map((t,ci)=>({label:t,data:cachedData.norm_prices[t].values,borderColor:TC[ci],backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3}))}:simNorm();
+    dk('norm');CH.norm=new Chart(document.getElementById('normChart'),{type:'line',data:normData,options:bo('Index (base 100)')});
   }
   if(id==='hypothesis'){
     buildHyp('ALL');
@@ -1092,7 +1094,9 @@ function initPanel(id){
   if(id==='garch'){
     buildPB();
     const gv=simGV();
-    dk('gv');CH.gv=new Chart(document.getElementById('garchVolChart'),{type:'line',data:{labels:gv.labels,datasets:[{label:'Cond. vol',data:gv.vals,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.1)',fill:true,borderWidth:1.2,pointRadius:0,tension:.2}]},options:bo('Cond. vol (%)')});
+    const gvLabels=cachedData?cachedData.nflx_cond_vol.dates:gv.labels;
+    const gvVals=cachedData?cachedData.nflx_cond_vol.values:gv.vals;
+    dk('gv');CH.gv=new Chart(document.getElementById('garchVolChart'),{type:'line',data:{labels:gvLabels,datasets:[{label:'Cond. vol',data:gvVals,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.1)',fill:true,borderWidth:1.2,pointRadius:0,tension:.2}]},options:bo('Cond. vol (%)')});
     dk('rm');CH.rm=new Chart(document.getElementById('rmseChart'),{type:'bar',data:{labels:T,datasets:[{data:T.map(t=>RMSE[t]),backgroundColor:'#374151',borderColor:'#4b5563',borderWidth:1,borderRadius:3}]},options:{...bo('Avg RMSE (pp)'),scales:{...bo().scales,y:{...bo().scales.y,min:0}}}});
   }
   if(id==='blog'){
@@ -1189,6 +1193,7 @@ async function loadData(){
 function showSt(cls,msg){const s=document.getElementById('sbar');s.className='sbar show '+cls;document.getElementById('sbarm').textContent=msg;}
 
 function fromApi(d){
+  cachedData=d;
   document.getElementById('m-days').textContent=d.meta.trading_days;
   document.getElementById('m-rej').textContent=d.hypothesis.filter(h=>h.significant).length+'/5';
   // summary table
