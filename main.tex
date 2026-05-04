@@ -1,0 +1,127 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+
+\definecolor{steelblue}{HTML}{1d4ed8}
+\definecolor{mutedgray}{HTML}{6b7280}
+
+\hypersetup{colorlinks=true, urlcolor=steelblue, linkcolor=steelblue, breaklinks=true}
+\def\UrlBreaks{\do\/\do-\do_\do.}
+\titleformat{\section}{\normalsize\bfseries}{}{0em}{}[\titlerule]
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small\color{mutedgray}Data 101 Final Project}
+\lhead{\small\color{mutedgray}Earnings Volatility Analytics}
+\cfoot{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\parskip}{5pt}
+
+\begin{document}
+
+\begin{center}
+  {\large\bfseries The Earnings Effect: Do Tech Stocks Actually Become More Volatile Around Earnings Time?}\\[5pt]
+  {\small Data 101 · Rutgers University}\\[3pt]
+  {\small Sonakshi Sharma \quad Sadhana Vasanthakumar \quad Hemadharshinii Sendhilvel \quad Rayane Skiker}\\[5pt]
+  \textbf{Interactive Website:}~\href{https://sadhanavasanthakumar.github.io/data101-volatility/}{\texttt{sadhanavasanthakumar.github.io/data101-volatility}}\\
+  \textbf{GitHub:}~\href{https://github.com/SadhanaVasanthakumar/data101-volatility}{\texttt{github.com/SadhanaVasanthakumar/data101-volatility}}
+\end{center}
+
+\section{The Question}
+
+Every quarter, companies like Meta, Apple, Amazon, Netflix, and Google report
+their earnings --- how much money they made, how many users they have, what
+they expect going forward. These reports are called \textbf{earnings
+announcements}, and the days surrounding them are informally known as
+\textbf{earnings season}. Stock prices can swing wildly on these days:
+Netflix lost \$50B in market value overnight in April 2022; Meta fell 26\%
+in a single session in February 2022.
+
+We asked: is this just bad luck, or do earnings announcements
+\textit{reliably} make these stocks more unpredictable, every quarter, year
+after year? And once a stock gets rattled by an earnings report, how long
+does the turbulence actually last?
+
+\section{The Data}
+
+We pulled daily stock prices for META, AAPL, AMZN, NFLX, and GOOGL from
+Yahoo Finance (January 2019 -- December 2024, $\approx$1,508 trading days per
+stock). We manually collected 24 quarterly earnings dates per company from
+Nasdaq's public calendar (120 events total) rather than using automated
+databases, which are known to be unreliable for historical dates.
+
+We measure each day's movement as its \textbf{absolute daily return} --- how
+much the stock went up or down, regardless of direction. A 3\% day means the
+stock moved 3\%, whether that was a gain or a loss. For each earnings date,
+we flagged a 5-day window (3 days before the announcement, the day itself, and
+1 day after) as ``earnings-adjacent'' --- information tends to leak before
+announcements, and markets often keep reacting the day after. Everything else
+was labeled ``normal trading.''
+
+\section{What We Did --- Course Topics Used}
+
+\textbf{Data exploration \& visualization.} We started by just looking at the
+data: how much do these stocks typically move, what are their worst and best
+single days, how did their prices grow relative to each other over six years.
+Interactive charts for all of this are on the website.
+
+\textbf{Hypothesis testing.} We used a \textbf{Welch's $t$-test} to formally
+ask: is the average daily movement during earnings windows significantly higher
+than on normal days? Result --- yes, for all five stocks, at a strict 1\%
+significance level. Meta moves almost twice as much during earnings windows
+(3.2\%) as on normal days (1.6\%). The test rules out that this difference is
+random chance.
+
+\textbf{Modeling.} We explored a \textbf{GARCH model} to understand how
+volatility behaves over time. The core insight it captures: a volatile day
+tends to be followed by another volatile day --- calm periods and stormy
+periods both cluster together. By fitting this model to each stock, we found
+that after an earnings shock, \textit{the turbulence doesn't just disappear}.
+Netflix's elevated volatility takes roughly 95 trading days ($\approx$4.5
+months) to decay to half its original size. Google recovers in about 9 days.
+We also used the model to predict future volatility and tested those
+predictions against what actually happened.
+
+\textbf{Bayesian inference.} For Netflix (the most volatile stock), we ran a
+Bayesian version of the same model. Instead of giving one best-guess answer,
+Bayesian inference gives a \textit{range} of plausible answers and shows how
+confident we should be in each. The result: forecast intervals that
+actually captured 93\% of outcomes, compared to 86\% for the standard model.
+Acknowledging uncertainty made the predictions more honest and more accurate.
+
+\section{Limitations}
+
+Our 5-day earnings window is a judgment call --- different window sizes would
+shift the numbers slightly, though the core finding holds. We only studied
+five large US tech stocks, so results may not generalize to other sectors or
+smaller companies. The GARCH model also assumes returns behave somewhat like a
+bell curve, but in reality extreme days (like Netflix $-$43\%) happen more
+often than any bell-curve model predicts. These are known trade-offs in
+financial modeling, not oversights.
+
+\section{How to Explore Our Work}
+
+\textbf{Our main deliverable is the interactive blog:}\\
+\href{https://sadhanavasanthakumar.github.io/data101-volatility/}{\texttt{sadhanavasanthakumar.github.io/data101-volatility}}
+
+This is where the full project lives --- it presents all of our findings as a
+public-facing blog post with charts you can interact with: rolling volatility
+over time, price growth across all five stocks, a correlation heatmap,
+hypothesis test results, and the modeled risk level for each company. Each
+section is written to be readable without a statistics background.
+
+\textbf{All code and data is on GitHub:}\\
+\href{https://github.com/SadhanaVasanthakumar/data101-volatility}{\texttt{github.com/SadhanaVasanthakumar/data101-volatility}}
+
+\texttt{analysis.r} is the full R pipeline that runs every analysis;
+\texttt{outputs/results.json} is the pre-computed output that powers the blog.
+To reproduce from scratch: install R with packages \texttt{quantmod},
+\texttt{rugarch}, \texttt{jsonlite}, \texttt{xts}, \texttt{zoo},
+\texttt{moments}, then run \texttt{Rscript analysis.r}.
+
+\end{document}
