@@ -1,5 +1,3 @@
-
-
 suppressPackageStartupMessages({
   library(quantmod)    # price data download
   library(rugarch)     # GARCH modelling
@@ -7,6 +5,7 @@ suppressPackageStartupMessages({
   library(xts)         # time-series operations
   library(zoo)         # rolling functions
   library(moments)     # skewness / kurtosis
+  library(ggplot2)
 })
 
 #config
@@ -461,6 +460,116 @@ bayesian <- list(
   sampler = list(draws = 800, tune = 400, chains = 2,
                  target_accept = 0.90, algorithm = "NUTS")
 )
+
+# =============================================================================
+# adding static figures (event study and distributions)
+# =============================================================================
+cat("\n[FIGURES] Creating static visualization outputs...\n")
+# store static figures in a separate folder
+dir.create("outputs/figures", recursive = TRUE, showWarnings = FALSE)
+
+
+# event study data build
+build_event_study <- function(ticker, window = 5) {
+  r <- as.numeric(log_returns[, ticker])
+  dates <- index(log_returns)
+  events <- earnings_dates[[ticker]]
+  out <- data.frame()
+  for (ed in events) {
+    # find closest trading day to earnings date
+    idx <- which.min(abs(as.numeric(dates - ed)))
+    start <- max(1, idx - window)
+    end   <- min(length(r), idx + window)
+    rel_days <- (start:end) - idx
+    df <- data.frame(
+      ticker = ticker,
+      rel_day = rel_days,
+      abs_return = abs(r[start:end]) * 100 # convert to %
+    )
+    out <- rbind(out, df)
+  }
+  return(out)
+}
+# combine all tickers
+event_study <- do.call(rbind, lapply(TICKERS, build_event_study))
+# aggregate mean path (THIS fixes noise and makes clean chart)
+event_summary <- aggregate(abs_return ~ ticker + rel_day,
+                           data = event_study,
+                           FUN = mean)
+
+# plot 1: event study
+p1 <- ggplot(event_summary,
+             aes(x = rel_day, y = abs_return, color = ticker)) +
+  geom_line(linewidth = 1) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  labs(
+    title = "Figure 2 — Stock Volatility Response Around Earnings Announcements",
+    x = "Event Time (Days Relative to Earnings Announcements)",
+    y = "Average Absolute Daily Return (%)",
+    color = ""
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.margin = margin(20, 20, 20, 20),  # top, right, bottom, left
+    plot.title = element_text(margin = margin(b = 30)),
+    plot.caption = element_text(margin = margin(t = 30)),
+    axis.title.x = element_text(margin = margin(t = 20)),
+    axis.title.y = element_text(margin = margin(r = 20)),
+    legend.position = "bottom")
+
+ggsave(
+  filename = "outputs/figures/event_study.png",
+  plot = p1,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+cat("  Saved event study plot\n")
+
+# distribution data (earnings vs normal distribution)
+dist_list <- lapply(TICKERS, function(ticker) {
+  r <- as.numeric(log_returns[, ticker])
+  mask <- build_earnings_mask(index(log_returns), ticker)
+  data.frame(
+    value = abs(r) * 100,
+    type  = ifelse(mask, "Earnings", "Normal"),
+    ticker = ticker
+  )
+})
+dist_df <- do.call(rbind, dist_list)
+
+# plot 2: distribution comparison
+p2 <- ggplot(dist_df,
+             aes(x = value, fill = type)) +
+  geom_density(alpha = 0.4) +
+  facet_wrap(~ticker, scales = "free") +
+  labs(
+    title = "Figure 4 — Volatility Distribution: Earnings vs Normal Trading Days",
+    x = "Absolute Daily Return (%)",
+    y = "Probability Density",
+    fill = ""
+  ) +
+  theme_minimal(base_size = 12) + 
+  theme(
+    plot.margin = margin(20, 20, 20, 20),  # top, right, bottom, left
+    plot.title = element_text(margin = margin(b = 30)),
+    plot.caption = element_text(margin = margin(t = 30)),
+    axis.title.x = element_text(margin = margin(t = 20)),
+    axis.title.y = element_text(margin = margin(r = 20)),
+    legend.position = "bottom")
+
+ggsave(
+  filename = "outputs/figures/volatility_distribution.png",
+  plot = p2,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+cat("  Saved distribution plot\n")
+cat("[FIGURES] Done.\n")
+# =============================================================================
 
 # assemble json 
 cat("\nAssembling JSON output...\n")
